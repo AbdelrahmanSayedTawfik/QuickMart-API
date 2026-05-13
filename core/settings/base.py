@@ -41,9 +41,11 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'django_celery_beat',
     'drf_spectacular',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 LOCAL_APPS = [
+    'apps.accounts',
 ]
 
 
@@ -144,6 +146,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
 # Internationalization
