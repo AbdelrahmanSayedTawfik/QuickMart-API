@@ -23,9 +23,3 @@ class CustomUser(AbstractUser):
     
         
     
-class Cart(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='cart')
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"Cart of {self.user.username}"    

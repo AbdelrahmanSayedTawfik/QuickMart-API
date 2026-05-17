@@ -8,5 +8,5 @@ from .models import CustomUser
 def create_cart_for_new_user(sender, instance, created, **kwargs):
     if created and instance.role == 'customer':  # Only create cart for customers
         # Assuming you have a Cart model with a ForeignKey to CustomUser
-        from .models import Cart
+        from apps.orders.models import Cart
         Cart.objects.create(user=instance)
