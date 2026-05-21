@@ -8,6 +8,9 @@ from .permissions import IsAdminOrReadOnly , IsSellerOrReadOnly , IsOwnerOrReadO
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import ProductFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 # Create your views here.
 
@@ -15,6 +18,18 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    
+    def list (self, request, *args, **kwargs):
+        cache_key = 'category_list'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        cache.set(cache_key, serializer.data, timeout=60*60)  # Cache for 1 hour
+        return Response(serializer.data)
+
     
     
 class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -37,16 +52,42 @@ class ProductListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
         
-    
-    
-
+    def list (self, request, *args, **kwargs):
         
+        query_string = request.query_params.urlencode()
+        cache_key = f'product_list_{query_string}' if query_string else 'product_list_all'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            data = self.get_paginated_response(serializer.data).data
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
             
+        cache.set(cache_key, data, timeout=60*60)  # Cache for 1 hour
+        return Response(data)    
+
 class ProductRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsOwnerOrReadOnly]  
-    lookup_field = 'slug'    
+    lookup_field = 'slug'  
+    
+    def retrieve(self, request, *args, **kwargs):
+        slug = kwargs.get('slug')
+        cache_key = f'product_detail_{slug}'
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        cache.set(cache_key, serializer.data, timeout=60*60)  # Cache for 1 hour
+        return Response(serializer.data)
     
     
 class ReviewListCreateView(generics.ListCreateAPIView):

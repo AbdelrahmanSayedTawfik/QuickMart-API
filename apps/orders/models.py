@@ -83,7 +83,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             import uuid
-            self.order_number = str(uuid.uuid4()).replace('-', '').upper()[:20]
+            self.order_number = f"QM-{uuid.uuid4().hex[:12].upper()}"
         super().save(*args, **kwargs)
     
     def __str__(self):

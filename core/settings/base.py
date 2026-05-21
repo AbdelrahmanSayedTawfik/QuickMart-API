@@ -10,7 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY',default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY',default='')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY',default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET',default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False)
@@ -41,13 +44,16 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'django_celery_beat',
     'drf_spectacular',
-    'rest_framework_simplejwt.token_blacklist'
+    'rest_framework_simplejwt.token_blacklist',
+    'channels',
+    
 ]
 
 LOCAL_APPS = [
     'apps.accounts',
     'apps.products',
     'apps.orders',
+    'apps.payments',
 ]
 
 
@@ -117,17 +123,26 @@ DATABASES = {
 # Cache
 
 CACHES = {
-    'default': 
-        {
+    'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/0'),
-        'OPTIONS': 
-            {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
-        }
-    }
+        'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
 
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 100
+            },
+        },
+
+        'KEY_PREFIX': 'quickmart',
+        'TIMEOUT': 300,
+
+        'SOCKET_CONNECT_TIMEOUT': 5,
+        'SOCKET_TIMEOUT': 5,
+    }
+}
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 
 
@@ -216,6 +231,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+CELERY_ENABLE_UTC = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')

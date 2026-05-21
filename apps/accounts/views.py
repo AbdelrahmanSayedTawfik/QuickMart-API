@@ -24,7 +24,7 @@ class RegisterView(generics.CreateAPIView):
             'user': RegisterSerializer(user).data,
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-        })
+        },status=201)
     
     
 

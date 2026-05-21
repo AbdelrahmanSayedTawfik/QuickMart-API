@@ -15,6 +15,14 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Passwords do not match.")
         return data
 
+    def validate_email(self, value):
+    # ADD THIS METHOD — checks email uniqueness
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "A user with this email already exists."
+            )
+        return value
+    
     def create(self, validated_data):
         validated_data.pop('password2')
 
