@@ -316,6 +316,6 @@ To test authenticated endpoints in Swagger:
 
 ## 👨‍💻 Author
 
-**Abdelrahman Sayed Tawfik** — 
+**Abdelrahman Sayed Tawfik** 
 
 
