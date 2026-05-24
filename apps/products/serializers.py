@@ -12,8 +12,8 @@ class CategorySerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['id', 'product', 'image', 'is_featured', 'created_at', 'updated_at']
-        read_only_fields = ['id','created_at', 'updated_at'] 
+        fields = ['id', 'product', 'image', 'created_at']
+        read_only_fields = ['id','created_at'] 
         
 class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True, read_only=True)
@@ -31,8 +31,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Review
-        fields = ['id', 'product', 'user', 'rating', 'comment', 'is_verified_purchaser', 'created_at', 'updated_at']
-        read_only_fields = ['id','user', 'is_verified_purchaser', 'created_at', 'updated_at']    
+        fields = ['id', 'product', 'user', 'rating', 'comment', 'is_verified_purchaser', 'created_at']
+        read_only_fields = ['id','user', 'is_verified_purchaser', 'created_at']    
         
         
         def validate_purchasing(self, value):

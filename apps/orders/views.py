@@ -12,8 +12,30 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
 
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiExample,
+    OpenApiResponse,
+)
+
 # Create your views here.
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Cart'],
+        summary='Get current cart',
+        description='Returns the authenticated user\'s shopping cart with all items.',
+        responses={
+            200: OpenApiResponse(
+                response=CartSerializer,
+                description='Cart with items and calculated totals'
+            ),
+            401: OpenApiResponse(description='Authentication required'),
+        }
+    )
+)
 class CartView(generics.RetrieveAPIView):
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
@@ -22,6 +44,31 @@ class CartView(generics.RetrieveAPIView):
         cart, created = Cart.objects.get_or_create(user=self.request.user)
         return cart
     
+    
+
+@extend_schema_view(
+    post=extend_schema(
+        tags=['Cart'],
+        summary='Add item to cart',
+        description='Adds a product to the user\'s cart. Creates cart if none exists. Increments quantity if product already in cart.',
+        request=CartItemSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=CartItemSerializer,
+                description='Item added/updated in cart'
+            ),
+            400: OpenApiResponse(description='Product ID missing or product unavailable'),
+            404: OpenApiResponse(description='Product not found'),
+        },
+        examples=[
+            OpenApiExample(
+                'Valid Request',
+                value={'product': 1, 'quantity': 2},
+                request_only=True,
+            ),
+        ]
+    )
+)    
 class CartAddItemView(generics.CreateAPIView):
     serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
@@ -52,7 +99,20 @@ class CartAddItemView(generics.CreateAPIView):
 
         return Response(CartItemSerializer(cart_item).data, status=status.HTTP_201_CREATED)    
     
-    
+
+@extend_schema_view(
+    delete=extend_schema(
+        tags=['Cart'],
+        summary='Remove item from cart',
+        description='Removes a specific product from the user\'s cart.',
+        request=None,  # DELETE usually has no body
+        responses={
+            204: OpenApiResponse(description='Item removed successfully'),
+            400: OpenApiResponse(description='Product ID required'),
+            404: OpenApiResponse(description='Cart item not found'),
+        }
+    )
+)    
 class CartRemoveItemView(generics.DestroyAPIView):
     serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
@@ -71,7 +131,23 @@ class CartRemoveItemView(generics.DestroyAPIView):
         except CartItem.DoesNotExist:
             return Response({'error': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)   
         
-        
+
+@extend_schema_view(
+    put=extend_schema(
+        tags=['Cart'],
+        summary='Update item quantity',
+        description='Updates the quantity of a specific product in the cart.',
+        request=CartItemSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=CartItemSerializer,
+                description='Quantity updated'
+            ),
+            400: OpenApiResponse(description='Product ID and quantity required'),
+            404: OpenApiResponse(description='Cart item not found'),
+        }
+    )
+)        
 class CartUpdateItemView(generics.UpdateAPIView):
     serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
@@ -91,7 +167,17 @@ class CartUpdateItemView(generics.UpdateAPIView):
             return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
         except CartItem.DoesNotExist:
             return Response({'error': 'Cart item not found.'}, status=status.HTTP_404_NOT_FOUND)
-        
+
+@extend_schema_view(
+    delete=extend_schema(
+        tags=['Cart'],
+        summary='Clear entire cart',
+        description='Removes ALL items from the user\'s cart. Cart object is preserved.',
+        responses={
+            204: OpenApiResponse(description='Cart cleared successfully'),
+        }
+    )
+)        
 class CartClearItemsView(generics.DestroyAPIView):
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
@@ -102,7 +188,39 @@ class CartClearItemsView(generics.DestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 # apps/orders/views.py — Fix CheckoutView
-
+@extend_schema_view(
+    post=extend_schema(
+        tags=['Orders'],
+        summary='Place order from cart',
+        description=(
+            'Converts the user\'s cart into an order. '
+            'Validates stock, deducts inventory, calculates tax & shipping. '
+            'Sends confirmation email and WebSocket notification.'
+        ),
+        request=CheckoutSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=OrderSerializer,
+                description='Order created successfully'
+            ),
+            400: OpenApiResponse(
+                description='Cart empty, stock insufficient, or product unavailable'
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                'Checkout Request',
+                value={
+                    'delivery_address': '123 Main St',
+                    'delivery_city': 'New York',
+                    'delivery_phone': '+1234567890',
+                    'notes': 'Leave at door'
+                },
+                request_only=True,
+            ),
+        ]
+    )
+)
 class CheckoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -200,13 +318,48 @@ class CheckoutView(generics.CreateAPIView):
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED
         )
+        
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Orders'],
+        summary='List my orders',
+        description='Returns all orders for the authenticated user, newest first.',
+        responses={
+            200: OpenApiResponse(
+                response=OrderSerializer,
+                description='List of user orders'
+            ),
+        }
+    )
+)        
 class OrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).order_by('-created_at')  
-
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Orders'],
+        summary='Get order details',
+        description='Retrieves full details of a specific order by order number.',
+        parameters=[
+            OpenApiParameter(
+                name='order_number',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='Unique order identifier (e.g., ORD-2024-001)'
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=OrderSerializer,
+                description='Order details with items'
+            ),
+            404: OpenApiResponse(description='Order not found'),
+        }
+    )
+)
 class OrderDetailView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
@@ -215,6 +368,33 @@ class OrderDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
 
+
+@extend_schema_view(
+    post=extend_schema(
+        tags=['Orders'],
+        summary='Cancel pending order',
+        description=(
+            'Cancels an order if status is still pending. '
+            'Restores product stock quantities automatically.'
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='order_number',
+                type=str,
+                location=OpenApiParameter.PATH,
+                description='Order number to cancel'
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description='Order cancelled, stock restored',
+                response={'message': 'Order cancelled successfully.'}
+            ),
+            400: OpenApiResponse(description='Only pending orders can be cancelled'),
+            404: OpenApiResponse(description='Order not found'),
+        }
+    )
+)
 class OrderRemoveView(APIView):
     permission_classes = [IsAuthenticated]
     

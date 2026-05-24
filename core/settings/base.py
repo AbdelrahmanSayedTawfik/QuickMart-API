@@ -249,17 +249,55 @@ CSRF_COOKIE_SECURE = False
 
 
 SPECTACULAR_SETTINGS = {
+    # API metadata (shown in Swagger UI header)
     'TITLE': 'QuickMart API',
-    'DESCRIPTION': 'API documentation for QuickMart application',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'COMPONENT_SPLIT_REQUEST': True,
+    'DESCRIPTION': '''
+    # 🛒 QuickMart E-Commerce API
     
-    'TAGS': 
-    [
-        {
-            'name': 'Authentication',
-            'description': 'Endpoints for user authentication and token management',
-        },
+    Complete backend API for the QuickMart e-commerce platform.
+    
+    ## Features
+    - 🔐 JWT Authentication (register, login, refresh, logout)
+    - 📦 Product Catalog (categories, products, reviews)
+    - 🛒 Shopping Cart (add, remove, update, clear)
+    - 📋 Order Management (checkout, status tracking, cancellation)
+    - 💳 Stripe Payments (PaymentIntent, webhooks, status)
+    - 📧 Async Emails (Celery + Redis)
+    - ⚡ Redis Caching (products, categories)
+    - 🔔 Real-time Updates (WebSocket order tracking)
+    
+    ## Authentication
+    All endpoints except product listing and registration require authentication.
+    
+    1. **Get tokens:** `POST /api/auth/login/`
+    2. **Use token:** Add header `Authorization: Bearer <access_token>`
+    3. **Refresh token:** `POST /api/auth/token/refresh/`
+    
+    ## Error Format
+    ```json
+    {
+      "detail": "Error message",
+      "code": "error_code"
+    }
+    ```
+    ''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,  # Don't show raw schema in UI
+    
+    # Authentication in Swagger UI
+    'SECURITY': [
+        {'Bearer': []},  # JWT token auth
+    ],
+    
+    # Tags for grouping endpoints
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'User registration, login, tokens'},
+        {'name': 'Users', 'description': 'User profile management'},
+        {'name': 'Products', 'description': 'Product catalog and search'},
+        {'name': 'Categories', 'description': 'Product categories'},
+        {'name': 'Reviews', 'description': 'Product reviews'},
+        {'name': 'Cart', 'description': 'Shopping cart operations'},
+        {'name': 'Orders', 'description': 'Order management'},
+        {'name': 'Payments', 'description': 'Stripe payment processing'},
     ],
 }

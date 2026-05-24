@@ -11,14 +11,59 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from .models import Payment
 from apps.orders.models import Order
-
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiExample,
+    OpenApiResponse,
+)
 
 
 # Create your views here.
 
 
 # apps/payments/views.py
-
+@extend_schema(
+    tags=['Payments'],
+    summary='Create Stripe payment intent',
+    description=(
+        'Initializes a Stripe PaymentIntent for an order. '
+        'Returns client_secret needed for frontend Stripe.js. '
+        'Prevents double-payment for already-paid orders.'
+    ),
+    request=None,  # Uses request body via @api_view
+    responses={
+        200: OpenApiResponse(
+            description='Payment intent created',
+            response={
+                'client_secret': 'pi_xxx_secret_yyy',
+                'publishable_key': 'pk_test_xxx',
+                'amount': 150.00,
+                'order_number': 'ORD-2024-001',
+            }
+        ),
+        400: OpenApiResponse(description='Order number missing or already paid'),
+        404: OpenApiResponse(description='Order not found'),
+        500: OpenApiResponse(description='Stripe API error'),
+    },
+    examples=[
+        OpenApiExample(
+            'Request',
+            value={'order_number': 'ORD-2024-001'},
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Success Response',
+            value={
+                'client_secret': 'pi_3Oxxx_secret_Sxxx',
+                'publishable_key': 'pk_test_51xxx',
+                'amount': 150.00,
+                'order_number': 'ORD-2024-001',
+            },
+            response_only=True,
+        ),
+    ]
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_payment_intent(request):
@@ -79,7 +124,24 @@ def create_payment_intent(request):
         'amount': float(order.total),
         'order_number': order.order_number,
     }, status=status.HTTP_200_OK)
-    
+
+@extend_schema(
+    tags=['Payments'],
+    summary='Stripe webhook handler',
+    description=(
+        'Receives asynchronous events from Stripe. '
+        'Handles payment_intent.succeeded and payment_intent.payment_failed. '
+        'Updates order/payment status and triggers confirmation emails. '
+        '**Must return 200 OK** — otherwise Stripe retries the webhook.'
+    ),
+    request=None,  # Raw body, not DRF serializer
+    responses={
+        200: OpenApiResponse(description='Webhook processed'),
+        400: OpenApiResponse(description='Invalid payload or signature'),
+    },
+    # Webhooks are usually hidden from Swagger UI (called by Stripe only)
+    # But documenting helps devs understand the flow
+)    
 def stripe_webhook(request):
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -162,7 +224,34 @@ def stripe_webhook(request):
     # If you return anything else, Stripe will retry the webhook
     return HttpResponse(status=200)
 
-
+@extend_schema(
+    tags=['Payments'],
+    summary='Check payment status',
+    description='Retrieves the current payment status for a specific order.',
+    parameters=[
+        OpenApiParameter(
+            name='order_number',
+            type=str,
+            location=OpenApiParameter.PATH,
+            description='Order number to check payment for'
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            description='Payment status retrieved',
+            response={
+                'order_number': 'ORD-2024-001',
+                'order_status': 'paid',
+                'payment_status': 'succeeded',
+                'amount': 150.00,
+                'currency': 'usd',
+                'paid_at': '2024-01-15T10:30:00Z',
+                'stripe_payment_intent_id': 'pi_3Oxxx',
+            }
+        ),
+        404: OpenApiResponse(description='Order or payment not found'),
+    }
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def payment_status(request, order_number):

@@ -1,0 +1,117 @@
+# ═══════════════════════════════════════════════════════════════
+# docker-compose.yml — Defines all services and how they connect
+# ═══════════════════════════════════════════════════════════════
+
+
+version: '3.8'
+
+
+services:
+
+  # ─────────────────────────────────────────────────────────────
+  # SERVICE 1: PostgreSQL Database
+  # ─────────────────────────────────────────────────────────────
+  db:
+
+    image: postgres:15
+
+
+    restart: unless-stopped
+
+
+    environment:
+      POSTGRES_DB: quickmart          # creates this database
+      POSTGRES_USER: postgres         # creates this user
+      POSTGRES_PASSWORD: postgres     # sets this password
+
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+    ports:
+      - "5432:5432"
+
+  # ─────────────────────────────────────────────────────────────
+  # SERVICE 2: Redis
+  # ─────────────────────────────────────────────────────────────
+  redis:
+    
+    image: redis:7-alpine
+
+    restart: unless-stopped
+
+
+    ports:
+      - "6379:6379"
+
+  # ─────────────────────────────────────────────────────────────
+  # SERVICE 3: Django Web Server
+  # ─────────────────────────────────────────────────────────────
+  web:
+
+    build: .
+
+    restart: unless-stopped
+
+
+    ports:
+      - "8000:8000"
+
+
+    env_file:
+      - .env
+
+
+    environment:
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.development
+
+
+    depends_on:
+      - db
+      - redis
+
+
+    volumes:
+      - .:/app
+      - media_files:/app/media
+
+
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+
+  # ─────────────────────────────────────────────────────────────
+  # SERVICE 4: Celery Worker
+  # ─────────────────────────────────────────────────────────────
+  celery:
+
+    build: .
+
+    restart: unless-stopped
+
+
+    env_file:
+      - .env
+
+
+    environment:
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=core.settings.development
+
+
+    depends_on:
+      - db
+      - redis
+
+
+    command: celery -A core worker -l info
+
+
+volumes:
+  postgres_data:   # stores PostgreSQL database files
+  media_files:     # stores uploaded images/files
