@@ -20,8 +20,8 @@ urlpatterns = [
     # ReDoc (alternative documentation UI - cleaner, read-only)
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     
-    path('api/', include('apps.accounts.urls')),
-    path('api/', include('apps.products.urls')),
-    path('api/', include('apps.orders.urls')),
-    path('api/payments/', include('apps.payments.urls')),
+    path('api/', include('apps.accounts.urls.urls')),
+    path('api/', include('apps.products.urls.urls')),
+    path('api/', include('apps.orders.urls.urls')),
+    path('api/payments/', include('apps.payments.urls.urls')),
 ]

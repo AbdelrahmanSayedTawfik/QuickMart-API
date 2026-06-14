@@ -8,6 +8,6 @@ class AccountsConfig(AppConfig):
     
     
     def ready(self):
-        import apps.accounts.signals  # Import signals to connect them
+        import apps.accounts.signals.signals
 
 
