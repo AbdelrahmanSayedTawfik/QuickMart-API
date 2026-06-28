@@ -60,4 +60,4 @@ class ProductService:
 
         slug = product.slug
         product.delete()
-        ProductCacheService.invalidate_product(slug)
+        

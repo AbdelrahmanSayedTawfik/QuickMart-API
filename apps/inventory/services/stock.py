@@ -6,9 +6,14 @@ from django.core.exceptions import ValidationError
 from apps.products.models.product import Product
 from apps.inventory.models.stock_movement import StockMovement
 from apps.inventory.validators.stock import StockValidator
-
+from apps.inventory.services.alert import AlertService
 
 class InventoryService:
+    
+    @staticmethod
+    def _check_alerts(product):
+        """Helper to check and create alerts after stock changes."""
+        AlertService.check_and_create_alerts(product)
 
     # ── STOCK DEDUCTION (when customer buys) ──
     
@@ -43,6 +48,7 @@ class InventoryService:
             created_by=user,
             order=order
         )
+        InventoryService._check_alerts(product)
         
         return movement
     
@@ -75,7 +81,7 @@ class InventoryService:
             created_by=user,
             order=order
         )
-        
+        InventoryService._check_alerts(product)
         return movement
     
     # ── STOCK ADJUSTMENT (inventory count, damaged goods) ──
@@ -115,7 +121,7 @@ class InventoryService:
             reason=reason,
             created_by=user
         )
-        
+        InventoryService._check_alerts(product)
         return movement
     
     # ── STOCK RETURN (customer returns item) ──
@@ -147,7 +153,7 @@ class InventoryService:
             created_by=user,
             order=order
         )
-        
+        InventoryService._check_alerts(product)
         return movement
     
     # ── AVAILABILITY CHECK ──

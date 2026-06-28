@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from apps.products.models.product import Product
-from apps.products.services.inventory import InventoryService
+from apps.inventory.services.stock import InventoryService
 from apps.products.services.cache import ProductCacheService
 
 

@@ -14,5 +14,4 @@ class CategoryQuerySet(QuerySet):
 
 
 
-from apps.products.models.category import Category
-Category.objects = CategoryQuerySet.as_manager()
+

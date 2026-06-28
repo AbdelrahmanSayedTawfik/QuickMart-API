@@ -1,0 +1,21 @@
+name,slug,description,parent_name,is_active
+Sports,sports,All sports equipment and apparel,,true
+Fitness,fitness,Gym and workout equipment,Sports,true
+Outdoor,outdoor,Camping and hiking gear,Sports,true
+Team Sports,team-sports,Ball sports and team equipment,Sports,true
+Cardio,cardio,Running and cardio machines,Fitness,true
+Strength,strength,Weights and resistance training,Fitness,true
+Camping,camping,Tents and sleeping bags,Outdoor,true
+Hiking,hiking,Backpacks and hiking gear,Outdoor,true
+Soccer,soccer,Soccer balls and cleats,Team Sports,true
+Basketball,basketball,Basketballs and hoops,Team Sports,true
+Running,running,Running shoes and gear,Cardio,true
+Cycling,cycling,Bikes and cycling accessories,Cardio,true
+Dumbbells,dumbbells,Free weights and dumbbells,Strength,true
+Resistance Bands,resistance-bands,Elastic bands and tubes,Strength,true
+Trekking Poles,trekking-poles,Hiking poles and staffs,Hiking,true
+Backpacks,backpacks,Daypacks and hiking backpacks,Hiking,true
+Goalkeeper Gloves,goalkeeper-gloves,Goalie gloves and protection,Soccer,true
+Soccer Cleats,soccer-cleats,Football boots and cleats,Soccer,true
+Basketball Shoes,basketball-shoes,Hoops shoes and sneakers,Basketball,true
+Basketballs,basketballs,Indoor and outdoor balls,Basketball,true

@@ -1,0 +1,27 @@
+name,sku,price,original_price,stock_quantity,category_name,status,is_active,is_featured
+Nike Air Zoom Pegasus 40,NIKE-PEG40-001,129.99,149.99,45,Running,available,true,true
+Adidas Ultraboost Light,ADID-UBLT-001,189.99,219.99,30,Running,available,true,false
+Brooks Ghost 15,BROOK-GH15-001,139.99,159.99,25,Running,available,true,false
+Trek Marlin 7 Mountain Bike,TREK-MARL7-001,829.99,899.99,12,Cycling,available,true,true
+Specialized Allez Road Bike,SPEC-ALLEZ-001,999.99,1099.99,8,Cycling,available,true,false
+Bowflex SelectTech 552,BOWF-ST552-001,349.99,429.99,20,Dumbbells,available,true,true
+Rogue Fitness Echo Bumper Plates,ROGU-ECHO-001,199.99,249.99,15,Strength,available,true,false
+TheraBand Resistance Bands Set,THER-RBSET-001,24.99,34.99,100,Resistance Bands,available,true,false
+REI Co-op Trail Hut 2 Tent,REI-THUT2-001,199.99,249.99,18,Camping,available,true,true
+Coleman Sundome 6-Person Tent,COLE-SUND6-001,149.99,179.99,22,Camping,available,true,false
+Osprey Atmos AG 65 Backpack,OSPR-AT65-001,269.99,319.99,14,Backpacks,available,true,true
+Deuter Aircontact Lite 50+10,DEUT-ACL50-001,219.99,259.99,10,Backpacks,available,true,false
+Leki Khumbu Lite Trekking Poles,LEKI-KHLITE-001,139.99,169.99,28,Trekking Poles,available,true,true
+Black Diamond Trail Ergo Cork,BDIA-TERGO-001,119.99,149.99,20,Trekking Poles,available,true,false
+Adidas Predator Elite Goalkeeper Gloves,ADID-PREDGK-001,89.99,109.99,35,Goalkeeper Gloves,available,true,true
+Nike Vapor Grip 3 Goalkeeper Gloves,NIKE-VG3GK-001,79.99,99.99,40,Goalkeeper Gloves,available,true,false
+Nike Mercurial Vapor 15 Elite,NIKE-MV15E-001,249.99,279.99,20,Soccer Cleats,available,true,true
+Adidas Copa Pure.1,ADID-CPURE1-001,224.99,249.99,18,Soccer Cleats,available,true,false
+Jordan XXXVII Low Basketball Shoes,JORD-XXX7L-001,184.99,209.99,25,Basketball Shoes,available,true,true
+Under Armour Curry 10,UA-CURRY10-001,159.99,179.99,30,Basketball Shoes,available,true,false
+Wilson Evolution Indoor Basketball,WILS-EVOIND-001,79.99,99.99,50,Basketballs,available,true,true
+Spalding TF-1000 Legacy,SPAL-TF1KLEG-001,69.99,84.99,40,Basketballs,available,true,false
+Garmin Forerunner 965,GARM-FR965-001,599.99,649.99,15,Running,available,true,true
+Polar H10 Heart Rate Monitor,POLA-H10-001,89.99,109.99,60,Cardio,available,true,false
+Rogue Ohio Bar,Rogu-OHIO-001,345.00,395.00,10,Strength,available,true,true
+Yeti Tundra 65 Cooler,YETI-TUN65-001,375.00,425.00,12,Camping,available,true,true

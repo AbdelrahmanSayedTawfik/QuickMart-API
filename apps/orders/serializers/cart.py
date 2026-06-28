@@ -1,4 +1,4 @@
-from rest_freamwork import serializers
+from rest_framework import serializers
 from apps.products.serializers.product import ProductSerializer
 from apps.orders.models.cartitem import CartItem
 from apps.orders.models.cart import Cart

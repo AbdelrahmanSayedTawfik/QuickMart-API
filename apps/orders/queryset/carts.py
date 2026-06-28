@@ -24,6 +24,3 @@ class CartQuerySet(QuerySet):
         )
 
 
-# Attach to model
-from apps.orders.models.cart import Cart
-Cart.objects = CartQuerySet.as_manager()

@@ -38,6 +38,4 @@ class PaymentQuerySet(QuerySet):
         return self.select_related('order', 'order__user')
 
 
-# Attach to model
-from apps.payments.models.payment import Payment
-Payment.objects = PaymentQuerySet.as_manager()
+

@@ -7,7 +7,7 @@ from apps.products.models.category import Category
 from apps.products.serializers.category import CategorySerializer
 from apps.products.permissions import IsAdminOrReadOnly
 from apps.products.services.cache import ProductCacheService
-
+from apps.products.pagination import FlexibleProductPagination
 
 @extend_schema_view(
     get=extend_schema(
@@ -36,22 +36,29 @@ class CategoryListCreateView(generics.ListCreateAPIView):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = FlexibleProductPagination
     permission_classes = [IsAdminOrReadOnly]
     
     def list(self, request, *args, **kwargs):
-        # Try cache first
+        
         cached_data = ProductCacheService.get_category_list()
         if cached_data:
             return Response(cached_data)
         
-        # Fetch from database
+        
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(queryset)
         
-        # Cache result
-        ProductCacheService.set_category_list(serializer.data)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            data = self.get_paginated_response(serializer.data).data
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+            
+        ProductCacheService.set_category_list(data)
         
-        return Response(serializer.data)
+        return Response(data)
 
 
 @extend_schema_view(

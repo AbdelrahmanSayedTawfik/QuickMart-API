@@ -3,17 +3,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import CustomUser
 
 
-# ─────────────────────────────────────────────
-# CUSTOM USER ADMIN
-# ─────────────────────────────────────────────
 @admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
-    """
-    Extended user admin with e-commerce specific fields.
-    Inherits from Django's built-in UserAdmin for password handling.
-    """
-    
- # ── LIST VIEW ──
     list_display = [
         'username',
         'email',
@@ -38,17 +29,10 @@ class CustomUserAdmin(BaseUserAdmin):
         'last_name'
     ]
     
-
+    # Keep default fieldsets (no extra fields)
+    fieldsets = BaseUserAdmin.fieldsets
     
-    # ── FORM FIELDS ──
-    fieldsets = BaseUserAdmin.fieldsets 
-    # ── ADD USER FORM ──
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('E-Commerce Profile', {
-            'fields': ('phone_number', 'is_seller')
-        }),
-    )
+    # Keep default add_fieldsets (no extra fields)
+    add_fieldsets = BaseUserAdmin.add_fieldsets
     
     readonly_fields = ['date_joined', 'last_login']
-
-

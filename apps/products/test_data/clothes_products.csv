@@ -1,0 +1,7 @@
+name,sku,price,original_price,stock_quantity,category_name,status,is_active,is_featured
+Blue Casual Shirt,CSH001,29.99,39.99,100,Casual,available,true,false
+White Formal Shirt,FSH002,49.99,59.99,75,Formal,available,true,true
+Black Jeans,JNS003,59.99,79.99,50,Jeans,available,true,false
+Navy Chinos,CHN004,44.99,54.99,60,Chinos,available,true,false
+Red Summer Dress,DRS005,39.99,49.99,80,Dresses,available,true,true
+Floral Skirt,SKT006,34.99,44.99,45,Skirts,available,true,false

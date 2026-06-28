@@ -27,7 +27,13 @@ class StockMovementQuerySet(QuerySet):
         """Include product info (reduces queries)."""
         return self.select_related('product', 'created_by', 'order')
     
+    
+    def recent(self, days=None):  
+        """Filter by last N days."""
+        if days:
+            since = timezone.now() - timedelta(days=days)
+            return self.filter(created_at__gte=since)
+        return self 
+    
 
-# Attach to model
-from apps.inventory.models.stock_movement import StockMovement
-StockMovement.objects = StockMovementQuerySet.as_manager()
+

@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models.user import CustomUser
-
+from apps.orders.queryset.orders import OrderQuerySet
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -14,12 +14,14 @@ class Order(models.Model):
         ('refunded', 'Refunded'),
     ]
     order_number = models.CharField(max_length=20, unique=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    #Snapshot of the delivery address at the time of order creation
+    
     delivery_address = models.CharField(max_length=255)
     delivery_city = models.CharField(max_length=100)
     delivery_phone = models.CharField(max_length=20)
+    objects = OrderQuerySet.as_manager()
+    
     
     notes = models.TextField(blank=True, null=True)
     

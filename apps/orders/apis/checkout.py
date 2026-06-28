@@ -14,23 +14,23 @@ from apps.orders.services.notification import NotificationService
         tags=['Orders'],
         summary='Place order from cart',
         description='''
-        Converts the user's cart into an order.
+        Converts the user's cart into a pending order.
         
         **What happens:**
         1. Validates cart has items
-        2. Validates stock availability for all items
+        2. Validates stock availability for all items (read-only check)
         3. Creates order with snapshot prices
-        4. Deducts inventory (with audit trail)
-        5. Clears cart
-        6. Sends confirmation email + WebSocket notification
+        4. Clears cart
+        5. Sends order created notification
         
+        **Stock is NOT deducted here** — it is deducted when payment is confirmed.
         **All steps are atomic** — if anything fails, nothing is saved.
         ''',
         request=CheckoutSerializer,
         responses={
             201: OpenApiResponse(
                 response=OrderSerializer,
-                description='Order created successfully'
+                description='Order created successfully (pending payment)'
             ),
             400: OpenApiResponse(
                 description='Cart empty, stock insufficient, or invalid address'
@@ -55,11 +55,9 @@ class CheckoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
-        # Step 1: Validate request data
         serializer = CheckoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Step 2: Process checkout (ALL logic is in the service!)
         try:
             order = CheckoutService.process(
                 user=request.user,
@@ -71,10 +69,8 @@ class CheckoutView(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Step 3: Send notifications (non-blocking)
         NotificationService.notify_order_created(order)
         
-        # Step 4: Return created order
         return Response(
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED

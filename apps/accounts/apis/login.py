@@ -17,7 +17,7 @@ from drf_spectacular.utils import (
         Returns JWT access and refresh tokens.
         Use access token in `Authorization: Bearer <token>` header.
         ''',
-        request=TokenObtainPairSerializer,
+        
         responses={
             200: OpenApiResponse(
                 description='Login successful',

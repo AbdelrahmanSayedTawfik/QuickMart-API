@@ -6,6 +6,7 @@ from apps.orders.models.order import Order
 from apps.orders.serializers.order import OrderSerializer
 
 
+
 @extend_schema_view(
     get=extend_schema(
         tags=['Orders'],

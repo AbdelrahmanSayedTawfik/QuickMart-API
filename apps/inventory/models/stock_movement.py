@@ -1,6 +1,8 @@
 from django.db import models
-
-
+from apps.inventory.querysets.stock_movements import StockMovementQuerySet
+from apps.products.models.product import Product
+from apps.orders.models.order import Order
+from apps.accounts.models.user import CustomUser
 class StockMovement(models.Model):
     # What kind of movement happened?
     MOVEMENT_TYPES = (
@@ -12,7 +14,7 @@ class StockMovement(models.Model):
     
     # Link to the product that changed
     product = models.ForeignKey(
-        'products.Product',
+        Product,
         on_delete=models.CASCADE,
         related_name='stock_movements',
         help_text='The product whose stock changed'
@@ -30,6 +32,7 @@ class StockMovement(models.Model):
         help_text='Number of units that moved'
     )
     
+    objects = StockMovementQuerySet.as_manager()
     
     # These are CRITICAL for audit. We snapshot the stock level.
     previous_stock = models.PositiveIntegerField(
@@ -47,7 +50,7 @@ class StockMovement(models.Model):
     
     # Link to the order that caused this (optional)
     order = models.ForeignKey(
-        'orders.Order',
+        Order,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='stock_movements',
@@ -56,7 +59,7 @@ class StockMovement(models.Model):
     
     # ── WHO DID IT? ──
     created_by = models.ForeignKey(
-        'accounts.CustomUser',
+        CustomUser,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='stock_movements',

@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter,OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 
 from apps.orders.models.order import Order
 from apps.orders.serializers.order import OrderSerializer
@@ -12,16 +12,15 @@ from apps.orders.services.notification import NotificationService
 
 @extend_schema(
     tags=['Orders'],
-    summary='Cancel pending order',
+    summary='Cancel order',
     description='''
-    Cancels an order if status is still pending.
+    Cancels a pending or paid order.
     
     **What happens:**
-    1. Validates order is pending
-    2. Restores product stock quantities
-    3. Updates order status to cancelled
-    4. Logs status change
-    5. Sends WebSocket notification
+    - If order is **pending**: Just cancels — no stock was deducted
+    - If order is **paid**: Cancels and restores product stock quantities
+    - Logs status change
+    - Sends WebSocket notification
     ''',
     parameters=[
         OpenApiParameter(
@@ -33,10 +32,10 @@ from apps.orders.services.notification import NotificationService
     ],
     responses={
         200: OpenApiResponse(
-            description='Order cancelled, stock restored',
+            description='Order cancelled successfully',
             examples=[OpenApiExample('Success', value={'message': 'Order cancelled successfully.'})]
         ),
-        400: OpenApiResponse(description='Only pending orders can be cancelled'),
+        400: OpenApiResponse(description='Order cannot be cancelled in current status'),
         404: OpenApiResponse(description='Order not found'),
     }
 )

@@ -127,19 +127,14 @@ CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
-
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
             'CONNECTION_POOL_KWARGS': {
                 'max_connections': 100
             },
         },
-
         'KEY_PREFIX': 'quickmart',
-        'TIMEOUT': 300,
-
-        'SOCKET_CONNECT_TIMEOUT': 5,
-        'SOCKET_TIMEOUT': 5,
+        'TIMEOUT': 5 if DEBUG else 300,  # 5 seconds in dev, 5 minutes in prod
     }
 }
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
@@ -167,6 +162,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+DEFAULT_FROM_EMAIL = 'QuickMart <noreply@quickmart.com>'
+FRONTEND_URL       = 'http://localhost:3000' 
 
 
 # Internationalization
@@ -198,8 +196,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication'
+        'apps.accounts.authentication.BlocklistAwareJWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -213,11 +212,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
+ACCESS_TOKEN_HOURS = config('JWT_ACCESS_TOKEN_LIFETIME_HOURS',default=8,cast=int)
+REFRESH_TOKEN_DAYS = config('JWT_REFRESH_TOKEN_LIFETIME_DAYS', default=7, cast=int)
 
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=ACCESS_TOKEN_HOURS),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=REFRESH_TOKEN_DAYS),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     }
@@ -234,13 +235,16 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 CELERY_ENABLE_UTC = True
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='your_email@example.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your_email_password')
+# Production 
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+#EMAIL_PORT = config('EMAIL_PORT', default=587)
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='your_email@example.com')
+#EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='your_email_password')
 
+# Console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days
 SESSION_SAVE_EVERY_REQUEST = True
@@ -300,5 +304,6 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Cart', 'description': 'Shopping cart operations'},
         {'name': 'Orders', 'description': 'Order management'},
         {'name': 'Payments', 'description': 'Stripe payment processing'},
+        {'name': 'Inventory', 'description': 'Check System Stock'},
     ],
 }

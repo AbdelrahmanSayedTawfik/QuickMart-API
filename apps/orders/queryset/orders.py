@@ -4,16 +4,16 @@ from django.db.models import QuerySet, Prefetch
 class OrderQuerySet(QuerySet):
 
     
-    def for_user(self, user_id):
-        
+    def for_user(self, user):
+        user_id = user.id if hasattr(user, 'id') else user
         return self.filter(user_id=user_id)
     
     def with_items(self):
-        
+        from apps.orders.models.orderitem import OrderItem  
         return self.prefetch_related(
             Prefetch(
                 'items',
-                queryset=self.model.items.related_model.objects.select_related('product')
+                queryset=OrderItem.objects.select_related('product')
             )
         )
     
@@ -38,6 +38,4 @@ class OrderQuerySet(QuerySet):
         return self.filter(status='paid')
 
 
-# Attach to model
-from apps.orders.models.order import Order
-Order.objects = OrderQuerySet.as_manager()
+

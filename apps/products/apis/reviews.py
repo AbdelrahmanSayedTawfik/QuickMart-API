@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
 
@@ -7,7 +8,8 @@ from apps.products.models.product import Product
 from apps.products.serializers.review import ReviewSerializer
 from apps.products.permissions import IsReviewerOrReadOnly
 from apps.products.validators.review import ReviewValidator
-
+from apps.products.pagination import ProductFeedPagination
+from apps.products.permissions import IsReviewerOrReadOnly
 
 @extend_schema_view(
     get=extend_schema(
@@ -36,42 +38,47 @@ from apps.products.validators.review import ReviewValidator
 class ReviewListCreateView(generics.ListCreateAPIView):
 
     serializer_class = ReviewSerializer
+    pagination_class = ProductFeedPagination
     
     def get_queryset(self):
-        
         slug = self.kwargs['slug']
         return Review.objects.filter(
             product__slug=slug,
             is_verified_purchaser=True,
-            is_approved=True
-        )
+        ).order_by('-created_at')  
     
     def get_permissions(self):
-        
         if self.request.method == 'POST':
-            return [IsAuthenticated()]
+            return [IsReviewerOrReadOnly()]
         return [AllowAny()]
     
     def get_serializer_context(self):
-
         context = super().get_serializer_context()
         slug = self.kwargs['slug']
         context['product'] = Product.objects.get(slug=slug)
         return context
     
     def perform_create(self, serializer):
-
         slug = self.kwargs['slug']
         product = Product.objects.get(slug=slug)
-        
-        # Validate user purchased the product
         ReviewValidator.validate_purchased(self.request.user, product)
-        
         serializer.save(
             user=self.request.user,
             product=product,
             is_verified_purchaser=True
         )
+    
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @extend_schema_view(

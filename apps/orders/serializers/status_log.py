@@ -1,4 +1,4 @@
-from rest_freamwork import serializers
+from rest_framework import serializers
 from apps.orders.models.orderstatuslog import OrderStatusLog
 
 class OrderStatusLogSerializer(serializers.ModelSerializer):

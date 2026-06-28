@@ -2,9 +2,7 @@ from django.db.models import QuerySet
 
 
 class StockAlertQuerySet(QuerySet):
-    """
-    Reusable queries for stock alerts.
-    """
+
     
     def unresolved(self):
         """Alerts that need attention."""
@@ -32,6 +30,4 @@ class StockAlertQuerySet(QuerySet):
     
 
 
-# Attach to model
-from apps.inventory.models.stock_alert import StockAlert
-StockAlert.objects = StockAlertQuerySet.as_manager()
+

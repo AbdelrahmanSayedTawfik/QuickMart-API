@@ -1,3 +1,4 @@
+from apps.products.models.product import Product
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -5,6 +6,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResp
 
 from apps.orders.serializers.cart import CartItemSerializer
 from apps.orders.services.cart import CartService
+
 
 
 @extend_schema_view(
@@ -40,6 +42,7 @@ class CartAddItemView(generics.CreateAPIView):
 
     serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
+    queryset = Product.objects.all()
     
     def post(self, request, *args, **kwargs):
         product_id = request.data.get('product')
@@ -60,11 +63,6 @@ class CartAddItemView(generics.CreateAPIView):
             return Response(
                 CartItemSerializer(item).data,
                 status=status.HTTP_201_CREATED
-            )
-        except ValueError as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
             return Response(

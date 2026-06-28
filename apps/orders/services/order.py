@@ -12,20 +12,24 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def cancel_order(order: Order, user) -> None:
-
-        if order.status != 'pending':
-            raise ValueError('Only pending orders can be cancelled')
+        """
+        Cancel order and restore stock ONLY if it was already paid.
+        Pending orders have no stock deducted, so nothing to restore.
+        """
+        if order.status not in ('pending', 'paid'):
+            raise ValueError(f'Cannot cancel order with status: {order.status}')
         
-        # Restore stock for each item
-        for item in order.items.select_related('product'):
-            if item.product:
-                InventoryService.add_stock(
-                    product=item.product,
-                    quantity=item.quantity,
-                    reason=f'Order cancelled: {order.order_number}',
-                    user=user,
-                    order=order
-                )
+        # Only restore stock if payment was already processed
+        if order.status == 'paid':
+            for item in order.items.select_related('product'):
+                if item.product:
+                    InventoryService.return_stock(
+                        product=item.product,
+                        quantity=item.quantity,
+                        reason=f'Order cancelled (refund): {order.order_number}',
+                        user=user,
+                        order=order
+                    )
         
         # Update order status
         old_status = order.status
@@ -46,9 +50,23 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def mark_as_paid(order: Order) -> None:
-
+        """
+        Mark order as paid and DEDUCT STOCK for the first time.
+        This is the ONLY place stock should be deducted for customer orders.
+        """
         if order.status != 'pending':
             return  # Already processed or wrong status
+        
+        # Deduct stock for each item (FIRST TIME!)
+        for item in order.items.select_related('product'):
+            if item.product:
+                InventoryService.deduct_stock(
+                    product=item.product,
+                    quantity=item.quantity,
+                    reason=f'Order paid: {order.order_number}',
+                    user=order.user,
+                    order=order
+                )
         
         old_status = order.status
         order.status = 'paid'
@@ -67,10 +85,12 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def update_status(order: Order, new_status: str, user=None) -> None:
-
+        """
+        Handle status transitions with proper stock management.
+        """
         valid_transitions = {
             'pending': ['paid', 'cancelled'],
-            'paid': ['processing', 'refunded'],
+            'paid': ['processing', 'refunded', 'cancelled'],
             'processing': ['shipped'],
             'shipped': ['delivered'],
             'delivered': ['refunded'],
@@ -84,6 +104,20 @@ class OrderService:
             )
         
         old_status = order.status
+        
+        # Handle stock for specific transitions
+        if new_status == 'cancelled' and old_status == 'paid':
+            # Paid order being cancelled — restore stock
+            for item in order.items.select_related('product'):
+                if item.product:
+                    InventoryService.return_stock(
+                        product=item.product,
+                        quantity=item.quantity,
+                        reason=f'Order cancelled (refund): {order.order_number}',
+                        user=user,
+                        order=order
+                    )
+        
         order.status = new_status
         
         # Set timestamps based on status

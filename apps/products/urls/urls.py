@@ -3,23 +3,40 @@ from apps.products.apis.products import ProductListCreateView, ProductRetrieveUp
 from apps.products.apis.categories import CategoryListCreateView, CategoryRetrieveUpdateDestroyView
 from apps.products.apis.reviews import ReviewListCreateView, ReviewRetrieveUpdateDestroyView
 from apps.products.apis.bulk_stock import bulk_update_stock
+from apps.products.apis.csv_import import ProductCSVCreateView,ProductCSVUpdateView,CategoryCSVCreateView,CategoryCSVUpdateView,CSVTemplateView
 
 
 urlpatterns = [
     
-    path('categories/', CategoryListCreateView.as_view(), name='category-list'),
-    path('categories/<slug:slug>/', CategoryRetrieveUpdateDestroyView.as_view(), name='category-detail'),
+    path('categories/', CategoryListCreateView.as_view(), name='category-list'), #DONE
+    path('categories/<slug:slug>/', CategoryRetrieveUpdateDestroyView.as_view(), name='category-detail'),#DONE
     
     
-    path('products/', ProductListCreateView.as_view(), name='product-list'),
-    path('products/<slug:slug>/', ProductRetrieveUpdateDestroyView.as_view(), name='product-detail'),
+    path('products/', ProductListCreateView.as_view(), name='product-list'), #DONE
+    
+    path('products/bulk-stock/', bulk_update_stock, name='bulk-stock'), #DONE 
+    
+    path('products/<slug:slug>/', ProductRetrieveUpdateDestroyView.as_view(), name='product-detail'), #DONE
     
     
-    path('products/<slug:slug>/reviews/', ReviewListCreateView.as_view(), name='review-list'),
+    path('products/<slug:slug>/reviews/', ReviewListCreateView.as_view(), name='review-list'), #DONE
     
     
-    path('reviews/<int:pk>/', ReviewRetrieveUpdateDestroyView.as_view(), name='review-detail'),
+    path('reviews/<int:pk>/', ReviewRetrieveUpdateDestroyView.as_view(), name='review-detail'), #DONE
     
+    path('import/csv/products/create/',ProductCSVCreateView.as_view(),name='csv-products-create'),
+
+    path('import/csv/products/update/',ProductCSVUpdateView.as_view(),name='csv-products-update'),
     
-    path('products/bulk-stock/', bulk_update_stock, name='bulk-stock'),
+    path('import/csv/categories/create/',CategoryCSVCreateView.as_view(),name='csv-categories-create'),
+    
+    path('import/csv/categories/update/',CategoryCSVUpdateView.as_view(),name='csv-categories-update'),
+
+    # GET                               → JSON overview of all models
+    # GET ?model=products               → downloads products_template.csv
+    # GET ?model=categories             → downloads categories_template.csv
+    # GET ?model=products&format=json   → JSON column info
+    path('import/csv/template/',CSVTemplateView.as_view(),name='csv-template'),  #DONE
+
+    
 ]

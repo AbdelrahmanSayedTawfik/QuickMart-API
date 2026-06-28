@@ -1,6 +1,8 @@
 from django.db import models
-
-
+from apps.inventory.querysets.stock_alerts import StockAlertQuerySet
+from apps.products.models.product import Product
+from apps.orders.models.order import Order
+from apps.accounts.models.user import CustomUser
 class StockAlert(models.Model):
     ALERT_TYPES = (
         ('low_stock', 'Low Stock'),
@@ -10,7 +12,7 @@ class StockAlert(models.Model):
     
     # Which product has the problem?
     product = models.ForeignKey(
-        'products.Product',
+        Product,
         on_delete=models.CASCADE,
         related_name='stock_alerts',
         help_text='Product that triggered this alert'
@@ -34,6 +36,8 @@ class StockAlert(models.Model):
         help_text='Alert when stock goes below this number'
     )
     
+    objects = StockAlertQuerySet.as_manager()
+    
     # ── ALERT STATUS ──
     is_resolved = models.BooleanField(
         default=False,
@@ -44,7 +48,7 @@ class StockAlert(models.Model):
         help_text='When was this alert resolved?'
     )
     resolved_by = models.ForeignKey(
-        'accounts.CustomUser',
+        CustomUser,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='resolved_alerts',

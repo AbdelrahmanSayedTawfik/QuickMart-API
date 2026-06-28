@@ -1,0 +1,11 @@
+name,slug,description,parent_name,is_active
+Men,men,Men's clothing,,true
+Women,women,Women's clothing,,true
+Shirts,shirts,All types of shirts,Men,true
+Pants,pants,All types of pants,Men,true
+Dresses,dresses,All types of dresses,Women,true
+Skirts,skirts,All types of skirts,Women,true
+Casual,casual,Casual wear,Shirts,true
+Formal,formal,Formal wear,Shirts,true
+Jeans,jeans,Denim pants,Pants,true
+Chinos,chinos,Casual pants,Pants,true

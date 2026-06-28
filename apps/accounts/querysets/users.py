@@ -1,7 +1,8 @@
 from django.db.models import QuerySet
-from apps.accounts.models.user import CustomUser
+
 
 class CustomUserQuerySet(QuerySet):
+    
     def active(self):
         return self.filter(is_active=True)
 
@@ -19,4 +20,6 @@ class CustomUserQuerySet(QuerySet):
     def with_cart(self):
         return self.prefetch_related('cart','cart__items','cart_items__product')
     
-CustomUser.objects = CustomUserQuerySet.as_manager()    
+    def get_by_natural_key(self, username):
+        return self.get(username=username)
+    

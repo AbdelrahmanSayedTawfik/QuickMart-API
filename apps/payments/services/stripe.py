@@ -52,6 +52,86 @@ class StripeService:
             'amount': float(order.total),
             'order_number': order.order_number,
         }
+        
+    @staticmethod
+    def create_checkout_session(order: Order, request) -> dict:
+        StripeService._configure_api()
+        
+        PaymentValidator.validate_order_not_paid(order)
+        PaymentValidator.validate_order_pending(order)
+        
+        response_format = request.data.get('response_format', 'redirect')
+    
+        success_url = request.build_absolute_uri(
+            f'/api/payments/success/?order_number={order.order_number}&format={response_format}'
+        )
+        cancel_url = request.build_absolute_uri(
+            f'/api/payments/cancel/?order_number={order.order_number}&format={response_format}'
+        )
+        
+        # Build line items from order items
+        line_items = []
+        for item in order.items.select_related('product'):
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': item.product_name,
+                        'images': (
+                            [item.product.images.first().image.url]
+                            if item.product.images.exists()
+                            else []
+                        ),
+                    },
+                    'unit_amount': int(item.product_price * 100),
+                },
+                'quantity': item.quantity,
+            })
+        
+        # Add shipping if applicable
+        if order.shipping_fee and order.shipping_fee > 0:
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {'name': 'Shipping Fee'},
+                    'unit_amount': int(order.shipping_fee * 100),
+                },
+                'quantity': 1,
+            })
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'order_number': order.order_number,
+                'order_id': order.id,
+            },
+            payment_intent_data={
+                'metadata': {
+                    'order_number': order.order_number,
+                }
+            },
+        )
+        
+        Payment.objects.update_or_create(
+            order=order,
+            defaults={
+                'stripe_payment_intent_id': session.payment_intent,
+                'stripe_checkout_session_id': session.id,
+                'amount': order.total,
+                'currency': 'usd',
+                'status': 'pending',
+            }
+        )
+        
+        return {
+            'checkout_url': session.url,
+            'session_id': session.id,
+            'order_number': order.order_number,
+        }    
     
     @staticmethod
     def retrieve_payment_intent(intent_id: str):

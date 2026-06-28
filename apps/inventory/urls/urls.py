@@ -6,13 +6,13 @@ from apps.inventory.apis.stock_alerts import StockAlertListView, StockAlertDetai
 
 urlpatterns = [
     
-    path('movements/', StockMovementListView.as_view(), name='stock-movement-list'),
-    path('movements/<int:pk>/', StockMovementDetailView.as_view(), name='stock-movement-detail'),
+    path('movements/', StockMovementListView.as_view(), name='stock-movement-list'), #DONE
+    path('movements/<int:pk>/', StockMovementDetailView.as_view(), name='stock-movement-detail'), #DONE
     
     
-    path('alerts/', StockAlertListView.as_view(), name='stock-alert-list'),
-    path('alerts/summary/', AlertSummaryView.as_view(), name='stock-alert-summary'),
-    path('alerts/<int:pk>/', StockAlertDetailView.as_view(), name='stock-alert-detail'),
+    path('alerts/', StockAlertListView.as_view(), name='stock-alert-list'), #DONE
+    path('alerts/summary/', AlertSummaryView.as_view(), name='stock-alert-summary'), #DONE
+    path('alerts/<int:pk>/', StockAlertDetailView.as_view(), name='stock-alert-detail'),#DONE
     
 
 ]
