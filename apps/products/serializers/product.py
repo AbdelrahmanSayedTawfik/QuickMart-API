@@ -1,19 +1,10 @@
 from apps.products.services.product import ProductService
 from rest_framework import serializers
-from apps.products.models.product import Product,ProductImage
-
-
-
-class ProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductImage
-        fields = ['id', 'image', 'alt_text', 'is_main']
-
+from apps.products.models.product import Product
 
 
 class ProductListSerializer(serializers.ModelSerializer):
 
-    primary_image = serializers.SerializerMethodField()
     seller_name = serializers.CharField(source='seller.username', read_only=True)
     
     class Meta:
@@ -21,27 +12,20 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'slug', 'price', 'original_price',
             'discount_percentage', 'stock_status', 'is_on_stock',
-            'seller_name', 'primary_image'
+            'seller_name'
         ]
         read_only_fields = ['seller_name']
-    
-    def get_primary_image(self, obj):
-        
-        primary = obj.images.filter(is_main=True).first()
-        if primary:
-            return self.context['request'].build_absolute_uri(primary.image.url)
-        return None
+
 
 
 # ── FULL product serializer (for detail view) ──
 class ProductSerializer(serializers.ModelSerializer):
 
-    images = ProductImageSerializer(many=True, read_only=True)
     discount_percentage = serializers.ReadOnlyField()
     is_on_stock = serializers.ReadOnlyField()
     seller_name = serializers.CharField(source='seller.username', read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
-    
+
     class Meta:
         model = Product
         fields = [
@@ -54,9 +38,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = [
-            'id', 'slug', 'stock_status','created_at', 'updated_at'
+            'id', 'slug', 'stock_status', 'created_at', 'updated_at', 'seller'
         ]
-        
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.pop('stock_quantity', None)
+        return data
+
     def update(self, instance, validated_data):
         validated_data.pop('seller', None)
-        return ProductService.update_product(product=instance, data=validated_data)    
+        return ProductService.update_product(product=instance, data=validated_data)

@@ -31,4 +31,5 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} in Order {self.order.order_number}" 
+        product_name = self.product.name if self.product else "Deleted Product"
+        return f"{self.quantity} x {product_name} in Order {self.order.order_number}" 

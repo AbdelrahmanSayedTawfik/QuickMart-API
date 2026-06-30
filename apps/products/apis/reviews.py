@@ -67,6 +67,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
             product=product,
             is_verified_purchaser=True
         )
+        
     
     
     def list(self, request, *args, **kwargs):

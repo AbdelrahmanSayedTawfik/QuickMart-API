@@ -102,9 +102,19 @@ class CSVImportService:
 
         # Step 4 — parse CSV and validate required columns
         try:
-            reader            = csv.DictReader(csv_file)
-            rows              = list(reader)
-            columns           = reader.fieldnames or []
+            # Read all lines, skip the hints row (row 2), keep header + data
+            lines = csv_file.readlines()
+            if len(lines) < 2:
+                result.message = 'CSV file is empty or missing data.'
+                return result
+    
+            # lines[0] = headers, lines[1] = hints, lines[2+] = data
+            data_lines = [lines[0]] + lines[2:]
+            csv_file = io.StringIO(''.join(data_lines))
+    
+            reader = csv.DictReader(csv_file)
+            rows = list(reader)
+            columns = reader.fieldnames or []
             result.total_rows = len(rows)
 
             missing = [
@@ -127,7 +137,7 @@ class CSVImportService:
 
         # Step 5 — process each row
         for index, row in enumerate(rows):
-            row_num = index + 2
+            row_num = index + 3
             try:
                 with transaction.atomic():
                     row_result = importer.import_row(row, row_num, update_existing)

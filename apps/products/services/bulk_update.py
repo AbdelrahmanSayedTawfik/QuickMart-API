@@ -50,7 +50,7 @@ class BulkStockService:
             updated_ids.append(item['product'].id)
         
         # Invalidate caches
-        ProductCacheService.invalidate_all_products()
+        ProductCacheService.invalidate_product_list_all()
         
         return {
             'success': True,

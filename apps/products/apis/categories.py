@@ -33,31 +33,34 @@ from apps.products.pagination import FlexibleProductPagination
     )
 )
 class CategoryListCreateView(generics.ListCreateAPIView):
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = FlexibleProductPagination
     permission_classes = [IsAdminOrReadOnly]
-    
+
     def list(self, request, *args, **kwargs):
-        
-        cached_data = ProductCacheService.get_category_list()
+        # Read pagination params from request
+        limit = request.query_params.get('limit')
+        offset = request.query_params.get('offset')
+
+        # Try cache with these exact params
+        cached_data = ProductCacheService.get_category_list(limit=limit, offset=offset)
         if cached_data:
             return Response(cached_data)
-        
-        
+
+        # Not cached — fetch from DB and paginate
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
-        
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             data = self.get_paginated_response(serializer.data).data
         else:
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
-            
-        ProductCacheService.set_category_list(data)
-        
+
+        # Cache with these exact params
+        ProductCacheService.set_category_list(data, limit=limit, offset=offset)
         return Response(data)
 
 

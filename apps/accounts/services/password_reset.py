@@ -1,23 +1,18 @@
-# apps/accounts/services/password_reset.py
-
 import secrets
 from datetime import timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from apps.accounts.models.password_reset import PasswordResetToken
-
+from apps.accounts.models.user import CustomUser
 
 class PasswordResetService:
 
     @staticmethod
     def request_reset(email):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
             return
 
         PasswordResetToken.objects.filter(user=user).delete()
@@ -73,10 +68,11 @@ class PasswordResetService:
 
         if refresh_token:
             from apps.accounts.services.auth import AuthService
+            from django.core.exceptions import ValidationError
             try:
                 AuthService.blacklist_token(refresh_token)
-            except Exception:
-                pass
+            except Exception as e:
+                raise ValidationError(f"Failed to blacklist token: {e}") from e
 
         reset_token.is_used = True
         reset_token.save()

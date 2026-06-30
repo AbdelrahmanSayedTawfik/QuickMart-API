@@ -9,7 +9,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'phone', 'address',
             'first_name', 'last_name', 'avatar'
         ]
-        read_only_fields = ['id', 'username', 'email']  # Can't change these
+        read_only_fields = ['id', 'username', 'email']  
     
     def validate_phone(self, value):
         

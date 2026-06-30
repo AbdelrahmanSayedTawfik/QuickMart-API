@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
-from apps.products.permissions import IsAdminOrReadOnly
+from apps.products.permissions import IsSellerOrAdminOrReadOnly
 from apps.products.services.bulk_update import BulkStockService
 
 
@@ -23,7 +23,7 @@ from apps.products.services.bulk_update import BulkStockService
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAdminOrReadOnly])
+@permission_classes([IsSellerOrAdminOrReadOnly])
 def bulk_update_stock(request):
 
     updates = request.data.get('updates', [])

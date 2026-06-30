@@ -8,11 +8,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','user', 'is_verified_purchaser', 'created_at']    
         
         
-        def validate_purchasing(self, value):
-            user = self.context['request'].user
-            product = self.context['product']
-            from apps.orders.models.orderitem import OrderItem
-            has_purchased = OrderItem.objects.filter(order__user=user, product=product).exists()
-            if not has_purchased:
-                raise serializers.ValidationError("You can only review products you have purchased.")
-            return value
+    def validate_purchasing(self, value):
+        user = self.context['request'].user
+        product = self.context['product']
+        from apps.orders.models.orderitem import OrderItem
+        has_purchased = OrderItem.objects.filter(order__user=user, product=product).exists()
+        if not has_purchased:
+            raise serializers.ValidationError("You can only review products you have purchased.")
+        return value

@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResp
 
 from apps.products.models.product import Product
 from apps.products.serializers.product import ProductSerializer , ProductListSerializer
-from apps.products.permissions import IsSellerOrReadOnly, IsOwnerOrReadOnly
+from apps.products.permissions import IsSellerOrAdminOrReadOnly, IsOwnerOrReadOnly
 from apps.products.querysets.products import ProductQuerySet
 from apps.products.services.product import ProductService
 from apps.products.services.cache import ProductCacheService
@@ -51,11 +51,8 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 )
 class ProductListCreateView(generics.ListCreateAPIView):
 
-    serializer_class = ProductSerializer
-    list_serializer_class = ProductListSerializer
     filterset_class = ProductFilter
     pagination_class = StandardProductPagination
-    
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['price', 'created_at', 'rating', 'sales_count']
@@ -63,18 +60,17 @@ class ProductListCreateView(generics.ListCreateAPIView):
     def get_permissions(self):
         
         if self.request.method == 'POST':
-            return [IsSellerOrReadOnly()]
+            return [IsSellerOrAdminOrReadOnly()]
         return [AllowAny()]
     
     def get_queryset(self):
-
         return Product.objects.active().optimized()
     
     def get_serializer_class(self):
 
         if self.request.method == 'GET':  # ← For GET list
-            return self.list_serializer_class
-        return self.serializer_class  # ← For POST create
+            return ProductListSerializer
+        return ProductSerializer  # ← For POST create
     
     def list(self, request, *args, **kwargs):
 

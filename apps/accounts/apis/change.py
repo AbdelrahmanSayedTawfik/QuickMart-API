@@ -22,6 +22,7 @@ from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResp
     )
 )
 class ChangePasswordView(generics.UpdateAPIView):
+    http_method_names = ['post']
     permission_classes = [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):

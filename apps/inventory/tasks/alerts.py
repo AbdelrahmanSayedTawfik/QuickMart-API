@@ -86,6 +86,9 @@ def daily_inventory_report():
     summary = AlertService.get_alert_summary()
     
     if summary['total_unresolved'] > 0:
+        admins = settings.ADMINS
+        if not admins:
+            return
         send_mail(
             subject='📊 Daily Inventory Report',
             message=f'''
@@ -99,6 +102,6 @@ def daily_inventory_report():
             Review at: {settings.SITE_URL}/admin/inventory/
             ''',
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[a[1] for a in settings.ADMINS],
+            recipient_list=[a[1] for a in admins],
             fail_silently=True
         )

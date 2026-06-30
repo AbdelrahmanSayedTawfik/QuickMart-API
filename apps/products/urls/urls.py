@@ -4,6 +4,12 @@ from apps.products.apis.categories import CategoryListCreateView, CategoryRetrie
 from apps.products.apis.reviews import ReviewListCreateView, ReviewRetrieveUpdateDestroyView
 from apps.products.apis.bulk_stock import bulk_update_stock
 from apps.products.apis.csv_import import ProductCSVCreateView,ProductCSVUpdateView,CategoryCSVCreateView,CategoryCSVUpdateView,CSVTemplateView
+from apps.products.apis.product_image import (
+    ProductImageUploadView,         # Single upload
+    ProductImageBulkUploadView,     # Bulk upload
+    ProductImageListView,           # List images
+    ProductImageDetailView,         # Single image CRUD
+)
 
 
 urlpatterns = [
@@ -24,19 +30,25 @@ urlpatterns = [
     
     path('reviews/<int:pk>/', ReviewRetrieveUpdateDestroyView.as_view(), name='review-detail'), #DONE
     
-    path('import/csv/products/create/',ProductCSVCreateView.as_view(),name='csv-products-create'),
+    path('import/csv/products/create/',ProductCSVCreateView.as_view(),name='csv-products-create'),#DONE
 
-    path('import/csv/products/update/',ProductCSVUpdateView.as_view(),name='csv-products-update'),
+    path('import/csv/products/update/',ProductCSVUpdateView.as_view(),name='csv-products-update'),#DONE
     
-    path('import/csv/categories/create/',CategoryCSVCreateView.as_view(),name='csv-categories-create'),
+    path('import/csv/categories/create/',CategoryCSVCreateView.as_view(),name='csv-categories-create'),#DONE
     
-    path('import/csv/categories/update/',CategoryCSVUpdateView.as_view(),name='csv-categories-update'),
+    path('import/csv/categories/update/',CategoryCSVUpdateView.as_view(),name='csv-categories-update'),#DONE
 
     # GET                               → JSON overview of all models
     # GET ?model=products               → downloads products_template.csv
     # GET ?model=categories             → downloads categories_template.csv
     # GET ?model=products&format=json   → JSON column info
     path('import/csv/template/',CSVTemplateView.as_view(),name='csv-template'),  #DONE
+    
+    
+    path('<int:product_id>/images/upload/', ProductImageUploadView.as_view(), name='product-image-upload'),
+    path('<int:product_id>/images/bulk-upload/', ProductImageBulkUploadView.as_view(), name='product-image-bulk-upload'),
+    path('<int:product_id>/images/', ProductImageListView.as_view(), name='product-image-list'),
+    path('images/<int:pk>/', ProductImageDetailView.as_view(), name='product-image-detail'),
 
     
 ]

@@ -12,7 +12,10 @@ class ProductQuerySet(QuerySet):
         return self.filter(is_featured=True)
     
     def by_category_tree(self, category):
-        category_ids = category.get_descendants
+        from apps.products.models.category_tree import CategoryTree
+        category_ids = CategoryTree.objects.filter(
+            category_above=category
+        ).values_list('category_below_id', flat=True)
         return self.filter(category_id__in=category_ids, is_active=True)
     
     def with_stats(self):

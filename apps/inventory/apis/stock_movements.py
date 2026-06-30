@@ -1,10 +1,10 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter
 
 from apps.inventory.models.stock_movement import StockMovement
 from apps.inventory.serializers.stock_movement import StockMovementSerializer, StockMovementListSerializer
-from apps.products.permissions import IsAdminOrReadOnly
+from apps.products.permissions import IsAdminOrSeller
 
 
 @extend_schema_view(
@@ -13,7 +13,7 @@ from apps.products.permissions import IsAdminOrReadOnly
         summary='List stock movements',
         description='''
         Get stock movement history with filtering.
-        
+
         **Query Parameters:**
         - `product` — Filter by product ID
         - `movement_type` — Filter by type (in, out, adjustment, return)
@@ -29,30 +29,25 @@ from apps.products.permissions import IsAdminOrReadOnly
 class StockMovementListView(generics.ListAPIView):
 
     serializer_class = StockMovementListSerializer
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [IsAdminOrSeller]
+
     def get_queryset(self):
-        qs = StockMovement.objects.with_product_details()
-        
-        # Filter by product
+        qs = StockMovement.objects.with_product_details()  # select_related('product', 'created_by', 'order')
+
         product_id = self.request.query_params.get('product')
         if product_id:
             qs = qs.for_product(product_id)
-        
-        # Filter by type
+
         movement_type = self.request.query_params.get('movement_type')
         if movement_type:
             qs = qs.by_type(movement_type)
-        
-        # Filter by date range
+
         days = self.request.query_params.get('days')
         if days:
             qs = qs.recent(days=int(days))
-        
-        # Non-admins only see their own products' movements
-        if self.request.user.role != 'admin':
-            qs = qs.filter(product__seller=self.request.user)
-        
+
+
+
         return qs
 
 
@@ -64,6 +59,7 @@ class StockMovementListView(generics.ListAPIView):
 )
 class StockMovementDetailView(generics.RetrieveAPIView):
 
-    queryset = StockMovement.objects.all()
+    # FIX: was StockMovement.objects.all() — serializer accesses product, created_by, order = 3 extra queries
+    queryset = StockMovement.objects.with_product_details()
     serializer_class = StockMovementSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrSeller]

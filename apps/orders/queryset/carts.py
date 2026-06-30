@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, Sum, Prefetch
+from django.db.models import QuerySet, Sum, Prefetch, F
 
 
 class CartQuerySet(QuerySet):
@@ -20,7 +20,7 @@ class CartQuerySet(QuerySet):
         
         return self.annotate(
             total_items=Sum('items__quantity'),
-            total_value=Sum('items__quantity' * 'items__product__price')  # Simplified
+            total_value=Sum(F('items__quantity') * F('items__product__price'))
         )
 
 

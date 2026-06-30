@@ -75,6 +75,7 @@ class ProductCSVCreateView(generics.CreateAPIView):
         )
 
 class ProductCSVUpdateView(generics.UpdateAPIView):
+    http_method_names = ['put']
     serializer_class = CSVUploadSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
     parser_classes = [MultiPartParser, FormParser]
@@ -188,6 +189,7 @@ class CategoryCSVCreateView(generics.CreateAPIView):
         )
 
 class CategoryCSVUpdateView(generics.UpdateAPIView):
+    http_method_names = ['put']
     serializer_class = CSVUploadSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
     parser_classes = [MultiPartParser, FormParser]

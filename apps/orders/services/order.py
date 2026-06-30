@@ -12,10 +12,7 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def cancel_order(order: Order, user) -> None:
-        """
-        Cancel order and restore stock ONLY if it was already paid.
-        Pending orders have no stock deducted, so nothing to restore.
-        """
+
         if order.status not in ('pending', 'paid'):
             raise ValueError(f'Cannot cancel order with status: {order.status}')
         
@@ -50,10 +47,7 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def mark_as_paid(order: Order) -> None:
-        """
-        Mark order as paid and DEDUCT STOCK for the first time.
-        This is the ONLY place stock should be deducted for customer orders.
-        """
+
         if order.status != 'pending':
             return  # Already processed or wrong status
         
@@ -85,9 +79,7 @@ class OrderService:
     @staticmethod
     @transaction.atomic
     def update_status(order: Order, new_status: str, user=None) -> None:
-        """
-        Handle status transitions with proper stock management.
-        """
+
         valid_transitions = {
             'pending': ['paid', 'cancelled'],
             'paid': ['processing', 'refunded', 'cancelled'],

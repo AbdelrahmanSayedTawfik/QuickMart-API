@@ -24,7 +24,7 @@ class CartRemoveItemView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated]
     
     def delete(self, request, *args, **kwargs):
-        product_id = request.data.get('product')
+        product_id = request.query_params.get('product') or request.data.get('product')
         
         if not product_id:
             return Response(

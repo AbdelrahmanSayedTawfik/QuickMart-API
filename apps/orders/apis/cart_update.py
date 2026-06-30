@@ -24,7 +24,7 @@ from apps.orders.services.cart import CartService
     )
 )
 class CartUpdateItemView(generics.UpdateAPIView):
-
+    http_method_names = ['put']
     permission_classes = [IsAuthenticated]
     
     def put(self, request, *args, **kwargs):

@@ -7,7 +7,6 @@ class Product(models.Model):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
         ('available', 'Available'),
-        ('out_of_stock', 'Out of Stock'),
         ('discontinued', 'Discontinued'),
     )
     STOCK_STATUS_CHOICES = (
@@ -68,7 +67,6 @@ class Product(models.Model):
     def update_stock_status(self):
         if self.stock_quantity <= 0:
             self.stock_status = 'out_of_stock'
-            self.status = 'out_of_stock'
         elif self.stock_quantity < 10:
             self.stock_status = 'low_stock'
         else:
@@ -87,21 +85,9 @@ class Product(models.Model):
         
         self.update_stock_status()
         super().save(*args, **kwargs)
+        from apps.inventory.services.alert import AlertService
+        AlertService.check_and_create_alerts(self)
         
     def __str__(self):
         return f"{self.name} (SKU: {self.sku}) - Stock: {self.stock_quantity}"
 
-
-class ProductImage(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='product_images/')
-    alt_text = models.CharField(max_length=255, blank=True, null=True)
-    is_main = models.BooleanField(default=False)
-    order = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['order']    
-    
-    def __str__(self):
-        return f"Image for {self.product.name}"

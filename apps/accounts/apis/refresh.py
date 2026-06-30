@@ -6,7 +6,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
 )
-
+from drf_spectacular.openapi import AutoSchema
 
 @extend_schema_view(
     post=extend_schema(
@@ -37,6 +37,6 @@ from drf_spectacular.utils import (
     )
 )
 class RefreshTokenView(TokenRefreshView):
-
+    schema = AutoSchema()
     pass
 

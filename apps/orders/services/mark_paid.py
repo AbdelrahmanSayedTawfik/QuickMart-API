@@ -15,9 +15,7 @@ class MarkOrderPaidService:
     @classmethod
     @transaction.atomic
     def process(cls, user, order: Order) -> Order:
-        """
-        Mark order as paid and deduct stock. ALL or NOTHING.
-        """
+
         # ── STEP 1: VALIDATE ORDER STATUS ──
         if order.status != 'pending':
             raise ValidationError(f"Order is already {order.status}. Cannot mark as paid.")
@@ -42,12 +40,7 @@ class MarkOrderPaidService:
                     f"Available: {product.stock_quantity}, Required: {item.quantity}"
                 )
 
-        # ── STEP 3: MARK ORDER AS PAID ──
-        order.status = 'paid'
-        order.paid_at = timezone.now()
-        order.save()
-
-        # ── STEP 4: DEDUCT STOCK ──
+        # ── STEP 3: DEDUCT STOCK (before order.save() so signal finds StockMovement records) ──
         for item in order.items.all():
             product = locked_products[item.product_id]
             previous_stock = product.stock_quantity
@@ -62,10 +55,16 @@ class MarkOrderPaidService:
                 previous_stock=previous_stock,
                 new_stock=product.stock_quantity,
                 reason=f'Order {order.order_number}',
-                created_by=user
+                created_by=user,
+                order=order
             )
 
             AlertService.check_and_create_alerts(product)
+
+        # ── STEP 4: MARK ORDER AS PAID ──
+        order.status = 'paid'
+        order.paid_at = timezone.now()
+        order.save()
 
         # ── STEP 5: GET OR CREATE PAYMENT RECORD ──
         payment, created = Payment.objects.get_or_create(

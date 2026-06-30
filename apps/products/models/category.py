@@ -25,7 +25,15 @@ class Category(models.Model):
         if not self.slug:
             from django.utils.text import slugify
             self.slug = slugify(self.name)
+
+        is_new = not self.pk
+        old_parent_id = None
+        if not is_new:
+            old_parent_id = Category.objects.only('parent_id').get(pk=self.pk).parent_id
+
         super().save(*args, **kwargs)
+
+        
         self._rebuild_closure()
 
     def delete(self, *args, **kwargs):

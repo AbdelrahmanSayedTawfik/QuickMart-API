@@ -60,12 +60,6 @@ from apps.orders.services.mark_paid import MarkOrderPaidService
     )
 )
 class MarkOrderPaidView(generics.GenericAPIView):
-    """
-    POST /api/orders/{number}/mark-paid/
-    
-    Simulates payment success for local testing.
-    Mirrors production webhook flow exactly.
-    """
     permission_classes = [IsAuthenticated]
     lookup_field = 'order_number'
     queryset = Order.objects.all()

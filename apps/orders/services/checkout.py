@@ -18,12 +18,7 @@ class CheckoutService:
     @classmethod
     @transaction.atomic
     def process(cls, user, checkout_data: dict) -> Order:
-        """
-        Main checkout flow. ALL or NOTHING.
-        
-        Stock is NOT deducted here — only validated.
-        Stock is deducted when payment is confirmed (see OrderService.mark_as_paid).
-        """
+
         # ── STEP 1: VALIDATE ──
         cart = CheckoutValidator.validate_cart(user)
         CheckoutValidator.validate_address(checkout_data)

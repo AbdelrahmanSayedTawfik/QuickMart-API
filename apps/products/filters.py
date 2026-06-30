@@ -15,8 +15,8 @@ class ProductFilter(django_filters.FilterSet):
     max_price = django_filters.NumberFilter(field_name='price', lookup_expr='lte')
     price_range = django_filters.RangeFilter(field_name='price')
     
-    # Category filter (including subcategories)
-    category = django_filters.NumberFilter(method='filter_by_category')
+    # Category filter (including subcategories, accepts slug or id)
+    category = django_filters.CharFilter(method='filter_by_category')
     
     # Multiple choice filters
     status_in = django_filters.MultipleChoiceFilter(
@@ -52,7 +52,7 @@ class ProductFilter(django_filters.FilterSet):
     
     class Meta:
         model = Product
-        fields = ['status', 'stock_status', 'is_active']
+        fields = ['is_active']
     
     
     def __init__(self, data=None, *args, **kwargs):
@@ -63,32 +63,27 @@ class ProductFilter(django_filters.FilterSet):
         super().__init__(data=data, *args, **kwargs)
     
     def filter_by_category(self, queryset, name, value):
-
-
         try:
-            # Get the category the user is filtering by
-            # Must exist and be active
-            category = Category.objects.get(
-                id=value,
-                is_active=True
-            )
+            if value.isdigit():
+                filter_kwargs = {'id': int(value), 'is_active': True}
+            else:
+                filter_kwargs = {'slug': value, 'is_active': True}
+            category = Category.objects.get(**filter_kwargs)
 
-            # Get this category + all active descendants from closure table
-            # Example: user clicks "Electronics"
-            # category_ids = [1, 2, 3, 4]
-            # (Electronics, Phones, iPhone, iPhone 15)
-            category_ids = (
+            # Get descendants + include the category itself
+            descendant_ids = (
                 CategoryTree.objects
                 .filter(category_above=category)
-                .filter(category_below__is_active=True)  # ← NEW: skip inactive descendants
+                .filter(category_below__is_active=True)
                 .values_list('category_below_id', flat=True)
             )
+        
+            # Combine parent + descendants
+            category_ids = list(descendant_ids) + [category.id]
 
-            # Filter the products queryset
             return queryset.filter(category_id__in=category_ids)
 
         except Category.DoesNotExist:
-            # Category not found or not active → return empty queryset
             return queryset.none()
         
     def filter_by_search(self, queryset, name, value):
@@ -101,6 +96,10 @@ class ProductFilter(django_filters.FilterSet):
         
     def filter_by_stock(self, queryset, name, value):
         if value:
-            return queryset.filter(stock_quantity__gt=0, stock_status__in=['in_stock'])
+            # is_on_stock = True: in stock AND available
+            return queryset.filter(stock_quantity__gt=0, status='available')
         else:
-            return queryset.filter(stock_quantity=0)
+            # is_on_stock = False: either no stock OR not available
+            return queryset.filter(
+                Q(stock_quantity=0) | ~Q(status='available')
+            )

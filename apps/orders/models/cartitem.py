@@ -25,5 +25,9 @@ class CartItem(models.Model):
         if self.quantity > self.product.stock_quantity:
             raise ValidationError('Quantity exceeds available stock.')
     
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.quantity} x {self.product.name} in {self.cart.user.username}'s cart"    

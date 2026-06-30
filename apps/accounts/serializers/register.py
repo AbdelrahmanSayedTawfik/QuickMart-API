@@ -8,8 +8,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'password2', 'phone', 'address', 'role', 'avatar']
-        read_only_fields = ['id', 'role'] 
+        fields = ['username', 'email', 'password', 'password2', 'phone', 'address', 'avatar']
+        read_only_fields = ['id'] 
 
     def validate(self, data):
         if data['password'] != data['password2']:
@@ -36,5 +36,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
+    
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['role'] = instance.role
+        return data
 
 

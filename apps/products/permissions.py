@@ -8,12 +8,25 @@ class IsAdminOrReadOnly(BasePermission):
         return request.user and request.user.is_authenticated and request.user.role == 'admin'
     
     
-class IsSellerOrReadOnly(BasePermission):
+class IsSellerOrAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
+        # Allow read-only access for any user (GET, HEAD, OPTIONS)
         if request.method in SAFE_METHODS:
-            return True   # Allow read-only access for any user (even unauthenticated) GET HEAD OPTIONS
-        # For write permissions, only allow if the user is authenticated and has the 'seller'
-        return request.user and request.user.is_authenticated and request.user.role == 'seller' and request.user.is_seller == True
+            return True
+        
+        # For write permissions, check if user is authenticated
+        if not request.user or not request.user.is_authenticated:
+            return False
+        
+        # Allow sellers (with is_seller flag)
+        is_seller = (
+            request.user.role == 'seller' 
+        )
+        
+        # Allow admins
+        is_admin = request.user.role == 'admin'
+        
+        return is_seller or is_admin
     
 
 class IsOwnerOrReadOnly(BasePermission):

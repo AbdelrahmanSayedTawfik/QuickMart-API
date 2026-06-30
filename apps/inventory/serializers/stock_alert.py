@@ -3,13 +3,12 @@ from apps.inventory.models.stock_alert import StockAlert
 
 
 class StockAlertSerializer(serializers.ModelSerializer):
+    
+    product_name = serializers.CharField(source='product.name', read_only=True, allow_null=True, default='')
+    product_sku = serializers.CharField(source='product.sku', read_only=True, allow_null=True, default='')
+    current_stock = serializers.IntegerField(source='product.stock_quantity', read_only=True, allow_null=True, default=0)
+    resolved_by_name = serializers.CharField(source='resolved_by.username', read_only=True, allow_null=True, default='')
 
-    
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    product_sku = serializers.CharField(source='product.sku', read_only=True)
-    current_stock = serializers.IntegerField(source='product.stock_quantity', read_only=True)
-    resolved_by_name = serializers.CharField(source='resolved_by.username', read_only=True)
-    
     class Meta:
         model = StockAlert
         fields = [
@@ -25,7 +24,6 @@ class StockAlertSerializer(serializers.ModelSerializer):
 
 
 class ResolveAlertSerializer(serializers.Serializer):
-
     resolution_note = serializers.CharField(
         required=False,
         allow_blank=True,

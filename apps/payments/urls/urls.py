@@ -7,14 +7,11 @@ from apps.payments.apis.success import payment_success,payment_cancel
 
 
 urlpatterns = [
-    # Create payment intent (called by frontend)
-    path('create-intent/', create_payment_intent, name='create-payment-intent'), #DONE
-    path('payments/<str:order_number>/checkout/',hosted_checkout , name='checkout'), #DONE
-    # Webhook (called by Stripe)
-    path('webhook/', stripe_webhook, name='stripe-webhook'),#DONE
-    path('payments/success/', payment_success, name='payment-success'),
-    path('payments/cancel/', payment_cancel, name='payment-cancel'),
+    path('create-intent/', create_payment_intent, name='create-payment-intent'),
+    path('<str:order_number>/checkout/', hosted_checkout, name='checkout'),  
+    path('webhook/', stripe_webhook, name='stripe-webhook'),
+    path('success/', payment_success, name='payment-success'),   
+    path('cancel/', payment_cancel, name='payment-cancel'),      
+    path('<str:order_number>/', payment_status, name='payment-status'),
     
-    # Check payment status (called by frontend)
-    path('<str:order_number>/', payment_status, name='payment-status'),#DONE
 ]

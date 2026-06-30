@@ -20,6 +20,8 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True, null=True)
+    failure_reason = models.CharField(max_length=255, blank=True, null=True)
     objects = PaymentQuerySet.as_manager()
     class Meta:
         ordering = ['-created_at']

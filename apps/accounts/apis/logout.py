@@ -30,7 +30,7 @@ class LogoutView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
-        access_token  = request.data.get('access')   # optional but recommended
+        access_token  = request.data.get('access')   
 
         if not refresh_token:
             return Response(
