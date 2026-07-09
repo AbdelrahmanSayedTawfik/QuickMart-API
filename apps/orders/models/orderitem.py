@@ -12,7 +12,7 @@ class OrderItem(models.Model):
     product_price = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    
+    fulfillment_warehouse = models.ForeignKey('products.warehouse',on_delete=models.SET_NULL,null=True,blank=True, related_name='fulfilled_order_items',help_text='Warehouse that stock was deducted from for this item') 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

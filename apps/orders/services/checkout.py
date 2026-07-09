@@ -22,7 +22,7 @@ class CheckoutService:
         # ── STEP 1: VALIDATE ──
         cart = CheckoutValidator.validate_cart(user)
         CheckoutValidator.validate_address(checkout_data)
-        CheckoutValidator.validate_stock(cart)  # Only checks availability, doesn't deduct
+        CheckoutValidator.validate_stock(cart, checkout_data['delivery_city'])
         
         # ── STEP 2: CALCULATE TOTALS ──
         subtotal = cart.total

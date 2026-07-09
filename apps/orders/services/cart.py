@@ -28,7 +28,7 @@ class CartService:
             raise ValueError('Product not found')
         
         CartValidator.validate_product_available(product)
-        CartValidator.validate_stock(product, quantity)
+        CartValidator.validate_stock(product, quantity,city=getattr(user, 'city', None))
         
         # Get cart
         cart = CartService.get_or_create_cart(user)
@@ -43,7 +43,7 @@ class CartService:
         if not created:
             # Item exists — increment quantity
             new_quantity = item.quantity + quantity
-            CartValidator.validate_stock(product, new_quantity)
+            CartValidator.validate_stock(product, new_quantity,city=getattr(user, 'city', None))
             item.quantity = new_quantity
             item.save()
         

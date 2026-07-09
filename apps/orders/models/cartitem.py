@@ -22,7 +22,23 @@ class CartItem(models.Model):
     def clean(self):
         if self.quantity < 1:
             raise ValidationError('Quantity must be at least 1.')
-        if self.quantity > self.product.stock_quantity:
+
+        from apps.products.models.warehouse_stock import WarehouseStock
+
+        city = getattr(self.cart.user, 'city', None)
+
+        if city:
+            stock = WarehouseStock.objects.filter(
+                Product=self.product,
+                Warehouse__city__iexact=city,
+                Warehouse__is_active=True
+            ).order_by('-quantity').first()
+            available = stock.quantity if stock else 0
+        else:
+            # No city set on the user yet — fall back to the cached global total
+            available = self.product.stock_quantity
+
+        if self.quantity > available:
             raise ValidationError('Quantity exceeds available stock.')
     
     def save(self, *args, **kwargs):

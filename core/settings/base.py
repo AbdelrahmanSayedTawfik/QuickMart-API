@@ -306,5 +306,10 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Payments', 'description': 'Stripe payment processing'},
         {'name': 'Inventory', 'description': 'Check System Stock'},
         {'name': 'Products Images', 'description': 'Add or Get Product Images'},
+        {'name': 'Warehouse', 'description': 'Warehouse For The Project'},
+        {'name': 'Warehouse Stock', 'description': 'Warehouse Stock Management'},
+        {'name': 'Warehouse Movement', 'description': 'Warehouse Movement'},
+        {'name': 'Shipping', 'description': 'Shipping Management'}
+        
     ],
 }

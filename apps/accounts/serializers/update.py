@@ -6,7 +6,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'id', 'username', 'email', 'phone', 'address',
+            'id', 'username', 'email', 'phone', 'address','city',
             'first_name', 'last_name', 'avatar'
         ]
         read_only_fields = ['id', 'username', 'email']  
