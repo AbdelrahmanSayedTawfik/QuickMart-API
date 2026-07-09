@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Django uploaded media
+/core/media/
+
+
 # C extensions
 *.so
 .env
