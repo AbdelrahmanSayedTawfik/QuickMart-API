@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from apps.orders.models.cart import Cart
+from apps.carts.models.cart import Cart
 from apps.orders.models.order import Order
 from apps.orders.models.orderitem import OrderItem
 from apps.orders.models.orderstatuslog import OrderStatusLog

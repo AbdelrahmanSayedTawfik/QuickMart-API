@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
-from apps.orders.models.cart import Cart
-from apps.products.models.warehouse_stock import WarehouseStock
+from apps.carts.models.cart import Cart
+from apps.warehouses.models.warehouse_stock import WarehouseStock
 
 
 class CheckoutValidator:

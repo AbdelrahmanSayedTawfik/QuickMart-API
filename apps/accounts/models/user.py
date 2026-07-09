@@ -17,7 +17,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLES, default='customer')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     is_seller = models.BooleanField(default=False)
-    managed_warehouses = models.ManyToManyField('products.Warehouse',blank=True,related_name='managers',help_text='Warehouses this manager can access')
+    managed_warehouses = models.ManyToManyField('warehouses.Warehouse',blank=True,related_name='managers',help_text='Warehouses this manager can access')
     
     class Meta:
         verbose_name = 'User'
