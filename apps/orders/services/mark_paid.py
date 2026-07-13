@@ -20,53 +20,31 @@ class MarkOrderPaidService:
         if order.status != 'pending':
             raise ValidationError(f"Order is already {order.status}. Cannot mark as paid.")
 
-        # ── STEP 2: LOCK PRODUCTS & VALIDATE STOCK ──
+        # ── STEP 2: LOCK PRODUCTS & VALIDATE STOCK (fail-fast pre-check) ──
         from apps.products.models import Product
-        
+
         product_ids = list(order.items.values_list('product_id', flat=True))
         locked_products = {
-            p.id: p 
+            p.id: p
             for p in Product.objects.filter(id__in=product_ids).select_for_update()
         }
-        
+
         for item in order.items.all():
             product = locked_products.get(item.product_id)
             if not product:
                 raise ValidationError(f"Product {item.product_id} no longer exists.")
-            
+
             if product.stock_quantity < item.quantity:
                 raise ValidationError(
                     f"Insufficient stock for '{product.name}'. "
                     f"Available: {product.stock_quantity}, Required: {item.quantity}"
                 )
 
-        # ── STEP 3: DEDUCT STOCK (before order.save() so signal finds StockMovement records) ──
-        for item in order.items.all():
-            product = locked_products[item.product_id]
-            previous_stock = product.stock_quantity
+        # ── STEP 3: MARK ORDER AS PAID (delegates real deduction to InventoryService) ──
+        from apps.orders.services.order import OrderService
+        OrderService.mark_as_paid(order)
 
-            product.stock_quantity -= item.quantity
-            product.save()
-
-            StockMovement.objects.create(
-                product=product,
-                movement_type='out',
-                quantity=item.quantity,
-                previous_stock=previous_stock,
-                new_stock=product.stock_quantity,
-                reason=f'Order {order.order_number}',
-                created_by=user,
-                order=order
-            )
-
-            AlertService.check_and_create_alerts(product)
-
-        # ── STEP 4: MARK ORDER AS PAID ──
-        order.status = 'paid'
-        order.paid_at = timezone.now()
-        order.save()
-
-        # ── STEP 5: GET OR CREATE PAYMENT RECORD ──
+        # ── STEP 4: GET OR CREATE PAYMENT RECORD ──
         payment, created = Payment.objects.get_or_create(
             order=order,
             defaults={
@@ -77,21 +55,11 @@ class MarkOrderPaidService:
         )
 
         if not created:
-            # Payment already existed, just update status
             payment.status = 'succeeded'
             payment.save()
 
-        # Always update paid_at (whether created or existing)
         if not payment.paid_at:
             payment.paid_at = timezone.now()
             payment.save()
-
-        # ── STEP 6: LOG STATUS CHANGE ──
-        OrderStatusLog.objects.create(
-            order=order,
-            previous_status='pending',
-            new_status='paid',
-            created_by=user
-        )
 
         return order

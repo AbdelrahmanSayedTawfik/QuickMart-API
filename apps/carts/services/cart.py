@@ -17,7 +17,7 @@ class CartService:
     
     @staticmethod
     @transaction.atomic
-    def add_item(user, product_id: int, quantity: int) -> CartItem:
+    def add_item(user, product_id: int, quantity: int,  city: str = None) -> CartItem:
 
         # Validate
         CartValidator.validate_quantity(quantity)
@@ -28,7 +28,7 @@ class CartService:
             raise ValueError('Product not found')
         
         CartValidator.validate_product_available(product)
-        CartValidator.validate_stock(product, quantity,city=getattr(user, 'city', None))
+        CartValidator.validate_stock(product, quantity, city)
         
         # Get cart
         cart = CartService.get_or_create_cart(user)
@@ -43,7 +43,7 @@ class CartService:
         if not created:
             # Item exists — increment quantity
             new_quantity = item.quantity + quantity
-            CartValidator.validate_stock(product, new_quantity,city=getattr(user, 'city', None))
+            CartValidator.validate_stock(product, new_quantity, city)
             item.quantity = new_quantity
             item.save()
         
@@ -63,7 +63,7 @@ class CartService:
     
     @staticmethod
     @transaction.atomic
-    def update_quantity(user, product_id: int, quantity: int) -> CartItem:
+    def update_quantity(user, product_id: int, quantity: int, city: str = None) -> CartItem:
         
         CartValidator.validate_quantity(quantity)
         
@@ -80,7 +80,7 @@ class CartService:
             item.delete()
             return None
         
-        CartValidator.validate_new_quantity(item.product, quantity)
+        CartValidator.validate_new_quantity(item.product, quantity, city)
         item.quantity = quantity
         item.save()
         

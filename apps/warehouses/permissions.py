@@ -52,5 +52,10 @@ class IsWarehouseManagerOrAdmin(IsAuthenticated):
         return False
 
 
-    
+class IsAdminOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True   # Allow read-only access for any user (even unauthenticated) GET HEAD OPTIONS
+        # For write permissions, only allow if the user is authenticated and has the 'admin'
+        return request.user and request.user.is_authenticated and request.user.role == 'admin'    
     

@@ -34,7 +34,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'stock_quantity', 'stock_status', 'is_on_stock',
             'status', 'is_active', 'is_featured',
             'seller', 'seller_name',
-            'category', 'category_name', 'images',
+            'category', 'category_name',
             'created_at', 'updated_at'
         ]
         read_only_fields = [

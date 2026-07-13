@@ -53,12 +53,15 @@ class CartAddItemView(generics.CreateAPIView):
                 {'error': 'Product ID is required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+            
+        city = getattr(request.user, 'city', None)
         
         try:
             item = CartService.add_item(
                 user=request.user,
                 product_id=int(product_id),
-                quantity=quantity
+                quantity=quantity,
+                city=city
             )
             return Response(
                 CartItemSerializer(item).data,

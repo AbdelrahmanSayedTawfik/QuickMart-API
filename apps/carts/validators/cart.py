@@ -29,9 +29,6 @@ class CartValidator:
     def validate_stock(product: Product, quantity: int, city: str = None) -> None:
 
         if not city:
-            # No city known yet (e.g. user hasn't set one) — fall back to the
-            # cached global total so the cart still works, checkout will do
-            # the real per-city check later.
             if product.stock_quantity < quantity:
                 raise ValidationError(
                     f'Not enough stock for "{product.name}". '

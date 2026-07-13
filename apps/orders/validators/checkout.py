@@ -26,7 +26,7 @@ class CheckoutValidator:
 
     @staticmethod
     def validate_stock(cart: Cart, city: str) -> None:
-        from apps.orders.validators.cart import CartValidator
+        from apps.carts.validators.cart import CartValidator
 
         for item in cart.items.select_related('product'):
             product = item.product

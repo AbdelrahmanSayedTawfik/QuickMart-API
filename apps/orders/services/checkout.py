@@ -43,11 +43,19 @@ class CheckoutService:
             status='pending'
         )
         
-        # ── STEP 4: CREATE ORDER ITEMS (NO STOCK DEDUCTION) ──
+        # ── STEP 4: CREATE ORDER ITEMS (NO STOCK DEDUCTION YET) ──
         for cart_item in cart.items.select_related('product'):
             product = cart_item.product
             
-            # Snapshot product data
+            # Find best warehouse in delivery city
+            from apps.warehouses.models.warehouse_stock import WarehouseStock
+            stock = WarehouseStock.objects.filter(
+                Product=product,
+                Warehouse__city__iexact=checkout_data['delivery_city'],
+                Warehouse__is_active=True,
+                quantity__gt=0
+            ).order_by('-quantity').first()
+            
             OrderItem.objects.create(
                 order=order,
                 product=product,
@@ -55,7 +63,8 @@ class CheckoutService:
                 product_name=product.name,
                 product_price=product.price,
                 quantity=cart_item.quantity,
-                subtotal=product.price * cart_item.quantity
+                subtotal=product.price * cart_item.quantity,
+                fulfillment_warehouse=stock.Warehouse if stock else None  # ← ADD THIS
             )
         
         if not order.items.exists():

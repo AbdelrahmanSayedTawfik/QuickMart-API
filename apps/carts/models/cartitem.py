@@ -10,7 +10,6 @@ class CartItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    
     class Meta:
         db_table = 'orders_cartitem' 
         unique_together = ('cart', 'product')
@@ -35,11 +34,19 @@ class CartItem(models.Model):
             ).order_by('-quantity').first()
             available = stock.quantity if stock else 0
         else:
-            # No city set on the user yet — fall back to the cached global total
-            available = self.product.stock_quantity
+            
+            total = WarehouseStock.objects.filter(
+                Product=self.product,
+                Warehouse__is_active=True
+            ).aggregate(total=models.Sum('quantity'))['total'] or 0
+            available = total  
 
         if self.quantity > available:
-            raise ValidationError('Quantity exceeds available stock.')
+            location = city or 'any warehouse'
+            raise ValidationError(
+                f'Not enough stock for "{self.product.name}" in {location}. '
+                f'Available: {available}, Requested: {self.quantity}'
+            )
     
     def save(self, *args, **kwargs):
         self.full_clean()

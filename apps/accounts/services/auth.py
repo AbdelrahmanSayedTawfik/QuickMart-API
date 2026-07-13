@@ -1,5 +1,3 @@
-# apps/accounts/services/auth.py
-
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.core.cache import cache
@@ -37,7 +35,6 @@ class AuthService:
                 ttl        = int(exp - now)
 
                 if ttl > 0:
-
                     cache.set(f'blocklist_jti_{jti}', '1', timeout=ttl)
             except Exception:
                 pass  

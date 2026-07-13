@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from apps.accounts.models.user import CustomUser
 from apps.accounts.validators.password import PasswordValidator
-
+from apps.warehouses.services.city_service import WarehouseCityService
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[PasswordValidator.validate])
     password2 = serializers.CharField(write_only=True)
@@ -21,6 +21,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError(
                 "A user with this email already exists."
+            )
+        return value
+    
+    def validate_city(self, value):
+        if not value:
+            raise serializers.ValidationError('City Is Required')
+        available = WarehouseCityService.get_available_cities()
+        if value not in available:
+            raise serializers.ValidationError(
+                f'We don\'t currently deliver to "{value}".'
             )
         return value
     

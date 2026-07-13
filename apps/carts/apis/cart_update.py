@@ -36,12 +36,13 @@ class CartUpdateItemView(generics.UpdateAPIView):
                 {'error': 'Product ID and quantity are required.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+        city = getattr(request.user, 'city', None)  
         try:
             item = CartService.update_quantity(
                 user=request.user,
                 product_id=int(product_id),
-                quantity=int(quantity)
+                quantity=int(quantity),
+                city=city
             )
             
             if item is None:

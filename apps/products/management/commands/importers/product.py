@@ -7,7 +7,7 @@ from .base import BaseImporter
 
 class ProductImporter(BaseImporter):
 
-    REQUIRED_COLUMNS = ['name', 'sku', 'price']
+    REQUIRED_COLUMNS = ['name', 'sku', 'price','warehouse_code', 'low_stock_threshold' ]
     OPTIONAL_COLUMNS = [
         'description',
         'original_price',
@@ -51,6 +51,8 @@ class ProductImporter(BaseImporter):
         status         = self.get(row, 'status', default='draft').lower()
         is_active      = self.get_bool(row, 'is_active', default=True)
         is_featured    = self.get_bool(row, 'is_featured', default=False)
+        warehouse_code = self.get(row, 'warehouse_code') or None
+        low_stock_threshold = self.get_int(row, 'low_stock_threshold', default=5)
 
         # --- Field validation ---
         if not name:
@@ -59,6 +61,10 @@ class ProductImporter(BaseImporter):
             raise ValueError('"sku" is required.')
         if not price:
             raise ValueError('"price" is required.')
+        if not warehouse_code:
+            raise ValueError('"warehouse_code" is required.')
+
+        warehouse = self._resolve_warehouse(warehouse_code)
 
         ProductValidator.validate_price(price)
         if original_price > 0:
@@ -96,12 +102,23 @@ class ProductImporter(BaseImporter):
                 product.is_active      = is_active
                 product.is_featured    = is_featured
                 product.save()
+
+                # --- Set warehouse stock for updated product ---
+                if warehouse and stock_quantity > 0:
+                    self._set_warehouse_stock(product, warehouse, stock_quantity, low_stock_threshold)
+
                 return 'updated'
+
+            # --- Product exists but update_existing=False ---
+            # Still create warehouse stock if it doesn't exist
+            if warehouse and stock_quantity > 0:
+                self._set_warehouse_stock(product, warehouse, stock_quantity, low_stock_threshold)
 
             return 'skipped'
 
         except Product.DoesNotExist:
-            Product.objects.create(
+            # --- Create new product ---
+            product = Product.objects.create(
                 name=name,
                 description=description,
                 sku=sku,
@@ -114,8 +131,30 @@ class ProductImporter(BaseImporter):
                 is_active=is_active,
                 is_featured=is_featured,
             )
+
+            # --- Set warehouse stock for NEW product ---
+            # THIS IS THE FIX: moved INSIDE the except block, AFTER product is created
+            if warehouse and stock_quantity > 0:
+                self._set_warehouse_stock(product, warehouse, stock_quantity, low_stock_threshold)
+
             return 'created'
 
+    def _resolve_warehouse(self, code):
+        from apps.warehouses.models.warehouse import Warehouse
+        try:
+            return Warehouse.objects.get(code=code, is_active=True)
+        except Warehouse.DoesNotExist:
+            raise ValueError(f'Warehouse "{code}" not found')
+
+    def _set_warehouse_stock(self, product, warehouse, quantity, threshold):
+        from apps.warehouses.services.product_stock_sync import ProductStockSyncService
+        ProductStockSyncService.sync_stock_for_import(
+            product=product,
+            warehouse=warehouse,
+            quantity=quantity,
+            threshold=threshold,
+            user=self.user
+        )
 
     def _resolve_user(self) -> CustomUser:
 

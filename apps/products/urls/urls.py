@@ -20,7 +20,7 @@ urlpatterns = [
     
     path('products/', ProductListCreateView.as_view(), name='product-list'), #DONE
     
-    path('products/bulk-stock/', bulk_update_stock, name='bulk-stock'), #DONE 
+    #path('products/bulk-stock/', bulk_update_stock, name='bulk-stock'), #DONE 
     
     path('products/<slug:slug>/', ProductRetrieveUpdateDestroyView.as_view(), name='product-detail'), #DONE
     

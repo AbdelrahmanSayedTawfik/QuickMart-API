@@ -8,5 +8,5 @@ def create_cart_for_new_user(sender, instance, created, **kwargs):
 
     if created and instance.role == 'customer':
         # Import here to avoid circular imports
-        from apps.orders.models.cart import Cart
+        from apps.carts.models.cart import Cart
         Cart.objects.create(user=instance)

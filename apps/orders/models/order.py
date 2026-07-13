@@ -13,18 +13,15 @@ class Order(models.Model):
         ('paid', 'Paid'),
         ('refunded', 'Refunded'),
     ]
+    
     order_number = models.CharField(max_length=20, unique=True)
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='orders')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
     delivery_address = models.CharField(max_length=255)
     delivery_city = models.CharField(max_length=100)
     delivery_phone = models.CharField(max_length=20)
     objects = OrderQuerySet.as_manager()
-    
-    
     notes = models.TextField(blank=True, null=True)
-    
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     tax = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
@@ -35,7 +32,6 @@ class Order(models.Model):
     shipped_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
     paid_at = models.DateTimeField(blank=True, null=True)
-    
     
     def save(self, *args, **kwargs):
         if not self.order_number:

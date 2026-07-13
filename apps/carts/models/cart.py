@@ -9,8 +9,7 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = CartQuerySet.as_manager()
-    
-    
+
     class Meta:
         db_table = 'orders_cart'
     

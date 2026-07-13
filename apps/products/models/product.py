@@ -88,6 +88,17 @@ class Product(models.Model):
         from apps.inventory.services.alert import AlertService
         AlertService.check_and_create_alerts(self)
         
+    def refresh_stock_from_warehouses(self):
+        
+        total = self.warehouse_stocks.filter(
+            Warehouse__is_active=True
+        ).aggregate(total=models.Sum('quantity'))['total'] or 0
+        
+        self.stock_quantity = total
+        self.update_stock_status()
+        self.save(update_fields=['stock_quantity', 'stock_status', 'updated_at'])
+            
+        
     def __str__(self):
         return f"{self.name} (SKU: {self.sku}) - Stock: {self.stock_quantity}"
 

@@ -1,7 +1,8 @@
 from django.urls import path
 from apps.warehouses.apis.warehouse import WarehouseListCreateView,WarehouseDetailView
-from apps.warehouses.apis.warehouse_stock import ProductStockSummaryView, ShipCheckView,WarehouseStockListView,StockInView,StockOutView,StockTransferView,StockAdjustmentView
+from apps.warehouses.apis.warehouse_stock import ProductStockSummaryView,WarehouseStockListView,StockInView,StockOutView,StockTransferView,StockAdjustmentView
 from apps.warehouses.apis.warehouse_movement import WarehouseMovementListView,WarehouseMovementDetailView
+from apps.warehouses.apis.city import AvailableCitiesView
 
 urlpatterns = [
     
@@ -25,7 +26,8 @@ urlpatterns = [
     path('warehouse/movements/', WarehouseMovementListView.as_view(), name='movement-list'),
     path('warehouse/movements/<int:pk>/', WarehouseMovementDetailView.as_view(), name='movement-detail'),
     
-    path('products/<int:product_id>/ship/',ShipCheckView.as_view(),name='ship-check'),
+    # City 
+    path('warehouse/cities/', AvailableCitiesView.as_view(), name = 'city-list')
     
     
 
